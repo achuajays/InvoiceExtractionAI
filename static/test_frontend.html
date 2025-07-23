@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Extraction API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .upload-section {
+            margin: 30px 0;
+            text-align: center;
+        }
+        input[type="file"] {
+            padding: 10px;
+            margin: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        #results {
+            margin-top: 30px;
+        }
+        .page-result {
+            background-color: #f9f9f9;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .page-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .field {
+            margin: 8px 0;
+            display: flex;
+        }
+        .field-label {
+            font-weight: bold;
+            min-width: 180px;
+            color: #555;
+        }
+        .field-value {
+            color: #333;
+        }
+        .items-section {
+            margin-top: 15px;
+        }
+        .item {
+            background-color: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .error {
+            color: #d32f2f;
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #388e3c;
+            background-color: #e8f5e9;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Invoice Extraction API Test</h1>
+        
+        <div class="upload-section">
+            <input type="file" id="pdfFile" accept=".pdf">
+            <br>
+            <button onclick="extractInvoice()">Extract Invoice Data</button>
+            <button onclick="showDemo()" style="margin-left: 10px; background-color: #2196F3;">Show Demo Output</button>
+        </div>
+        
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Processing your PDF...</p>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function extractInvoice() {
+            const fileInput = document.getElementById('pdfFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a PDF file');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('pdf', file);
+            
+            const loadingDiv = document.getElementById('loading');
+            const resultsDiv = document.getElementById('results');
+            const button = document.querySelector('button');
+            
+            loadingDiv.style.display = 'block';
+            resultsDiv.innerHTML = '';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('http://localhost:8000/extract', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                loadingDiv.style.display = 'none';
+                button.disabled = false;
+            }
+        }
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = `
+                <div class="success">
+                    ✅ Successfully extracted invoice data
+                </div>
+            `;
+            
+            // Display the invoice data
+            html += `
+                <div class="page-result">
+                    <div class="page-header">📄 Invoice Details</div>
+                    <div class="field">
+                        <span class="field-label">Party Name:</span>
+                        <span class="field-value">${data.party_name} (${data.party_name_translated})</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Invoice No:</span>
+                        <span class="field-value">${data.invoice_no}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Date:</span>
+                        <span class="field-value">${data.date}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Seller VAT No:</span>
+                        <span class="field-value">${data.seller_vat_no}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Client VAT No:</span>
+                        <span class="field-value">${data.client_vat_no}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Total Amount:</span>
+                        <span class="field-value">${data.amount}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Vendor Address:</span>
+                        <span class="field-value">${data.vendor_addr}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Translated Address:</span>
+                        <span class="field-value">${data.vendor_addr_translated}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Language:</span>
+                        <span class="field-value">${data.detected_language}</span>
+                    </div>
+                    
+                    ${data.items && data.items.length > 0 ? `
+                        <div class="items-section">
+                            <div class="field-label">Items (${data.items.length}):</div>
+                            ${data.items.map((item, index) => `
+                                <div class="item">
+                                    ${index + 1}. ${item.name} (${item.name_translated}) - Qty: ${item.quantity} - Cost: ${item.cost}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<div class="field"><span class="field-label">Items:</span><span class="field-value">No items found</span></div>'}
+                </div>
+            `;
+            
+            // Display JSON preview
+            html += `
+                <div class="page-result">
+                    <div class="page-header">📋 JSON Response</div>
+                    <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function showDemo() {
+            // Sample demo data
+            const demoData = {
+                "party_name": "شركة النور للتجارة",
+                "party_name_translated": "Al Noor Trading Company",
+                "date": "15/01/2024",
+                "invoice_no": "INV-2024-0156",
+                "seller_vat_no": "300123456789012",
+                "client_vat_no": "310987654321098",
+                "amount": "SAR 15,750.00",
+                "vendor_addr": "شارع الملك فهد، الرياض 11564",
+                "vendor_addr_translated": "King Fahd Street, Riyadh 11564",
+                "detected_language": "Bilingual",
+                "items": [
+                    {
+                        "name": "طابعة ليزر",
+                        "name_translated": "Laser Printer",
+                        "quantity": "5",
+                        "cost": "SAR 2,500.00"
+                    },
+                    {
+                        "name": "ورق A4",
+                        "name_translated": "A4 Paper",
+                        "quantity": "50",
+                        "cost": "SAR 1,250.00"
+                    },
+                    {
+                        "name": "حبر طابعة",
+                        "name_translated": "Printer Ink",
+                        "quantity": "20",
+                        "cost": "SAR 2,000.00"
+                    }
+                ]
+            };
+            
+            // Add demo indicator
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="success" style="background-color: #e3f2fd; color: #1565c0;">🎭 This is a demo output showing what extracted data looks like</div>';
+            
+            // Display the demo data
+            displayResults(demoData);
+        }
+    </script>
+</body>
+</html>

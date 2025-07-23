@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Extraction - Demo Output</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1a237e;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .demo-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .demo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .demo-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3f51b5;
+            padding-bottom: 10px;
+        }
+        .output-example {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .field-example {
+            margin: 10px 0;
+            padding: 8px;
+            background-color: white;
+            border-left: 3px solid #4caf50;
+            border-radius: 4px;
+        }
+        .field-label {
+            font-weight: bold;
+            color: #555;
+            display: inline-block;
+            width: 150px;
+        }
+        .field-value {
+            color: #333;
+        }
+        .arabic {
+            direction: rtl;
+            font-family: 'Traditional Arabic', 'Arabic Typesetting', Arial;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .items-table th {
+            background-color: #3f51b5;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .items-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .json-preview {
+            background-color: #263238;
+            color: #aed581;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        .feature-badge {
+            display: inline-block;
+            background-color: #ff5722;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 5px;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Invoice Extraction AI - Expected Output Demo</h1>
+        
+        <div class="info-box">
+            <strong>ℹ️ About This Demo:</strong> This page shows examples of how the Invoice Extraction AI will format and present the extracted data from your PDF invoices. The system supports both Arabic and English invoices with automatic translation.
+        </div>
+
+        <div class="demo-grid">
+            <div class="demo-card">
+                <div class="demo-title">🏢 Supported Invoice Types</div>
+                <ul>
+                    <li>Arabic Invoices <span class="arabic">الفواتير العربية</span></li>
+                    <li>English Invoices</li>
+                    <li>Bilingual Invoices (Arabic/English)</li>
+                    <li>Multi-page PDFs</li>
+                    <li>Scanned Documents</li>
+                    <li>Digital PDFs</li>
+                </ul>
+            </div>
+
+            <div class="demo-card">
+                <div class="demo-title">✨ Key Features</div>
+                <div>
+                    <span class="feature-badge">Auto Translation</span>
+                    <span class="feature-badge">VAT Detection</span>
+                    <span class="feature-badge">Item Quantity</span>
+                    <span class="feature-badge">Multi-language</span>
+                    <span class="feature-badge">JSON Export</span>
+                    <span class="feature-badge">REST API</span>
+                </div>
+            </div>
+
+            <div class="demo-card">
+                <div class="demo-title">📊 Extracted Fields</div>
+                <ul>
+                    <li>Party/Client Name (with translation)</li>
+                    <li>Invoice Number</li>
+                    <li>Invoice Date</li>
+                    <li>Seller VAT Number</li>
+                    <li>Client VAT Number</li>
+                    <li>Total Amount</li>
+                    <li>Vendor Address (with translation)</li>
+                    <li>Item Details (name, quantity, cost)</li>
+                    <li>Detected Language</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 style="color: #1a237e; text-align: center;">📄 Sample Output - Bilingual Invoice</h2>
+        
+        <div class="output-example">
+            <h3>Invoice Details</h3>
+            
+            <div class="field-example">
+                <span class="field-label">Party Name:</span>
+                <span class="field-value"><span class="arabic">شركة النور للتجارة</span> (Al Noor Trading Company)</span>
+            </div>
+            
+            <div class="field-example">
+                <span class="field-label">Invoice No:</span>
+                <span class="field-value">INV-2024-0156</span>
+            </div>
+            
+            <div class="field-example">
+                <span class="field-label">Date:</span>
+                <span class="field-value">15/01/2024</span>
+            </div>
+            
+            <div class="field-example">
+                <span class="field-label">Seller VAT No:</span>
+                <span class="field-value">300123456789012</span>
+            </div>
+            
+            <div class="field-example">
+                <span class="field-label">Client VAT No:</span>
+                <span class="field-value">310987654321098</span>
+            </div>
+            
+            <div class="field-example">
+                <span class="field-label">Total Amount:</span>
+                <span class="field-value">SAR 15,750.00</span>
+            </div>
+            
+            <div class="field-example">
+                <span class="field-label">Vendor Address:</span>
+                <span class="field-value"><span class="arabic">شارع الملك فهد، الرياض 11564</span> (King Fahd Street, Riyadh 11564)</span>
+            </div>
+            
+            <div class="field-example">
+                <span class="field-label">Language:</span>
+                <span class="field-value">Bilingual</span>
+            </div>
+            
+            <h4>Items:</h4>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Item Name</th>
+                        <th>Translated Name</th>
+                        <th>Quantity</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td class="arabic">طابعة ليزر</td>
+                        <td>Laser Printer</td>
+                        <td>5</td>
+                        <td>SAR 2,500.00</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td class="arabic">ورق A4</td>
+                        <td>A4 Paper</td>
+                        <td>50</td>
+                        <td>SAR 1,250.00</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td class="arabic">حبر طابعة</td>
+                        <td>Printer Ink</td>
+                        <td>20</td>
+                        <td>SAR 2,000.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 style="color: #1a237e; text-align: center;">💻 JSON Response Format</h2>
+        
+        <div class="json-preview">
+<pre>{
+  "party_name": "شركة النور للتجارة",
+  "party_name_translated": "Al Noor Trading Company",
+  "date": "15/01/2024",
+  "invoice_no": "INV-2024-0156",
+  "seller_vat_no": "300123456789012",
+  "client_vat_no": "310987654321098",
+  "amount": "SAR 15,750.00",
+  "vendor_addr": "شارع الملك فهد، الرياض 11564",
+  "vendor_addr_translated": "King Fahd Street, Riyadh 11564",
+  "detected_language": "Bilingual",
+  "items": [
+    {
+      "name": "طابعة ليزر",
+      "name_translated": "Laser Printer",
+      "quantity": "5",
+      "cost": "SAR 2,500.00"
+    },
+    {
+      "name": "ورق A4",
+      "name_translated": "A4 Paper",
+      "quantity": "50",
+      "cost": "SAR 1,250.00"
+    },
+    {
+      "name": "حبر طابعة",
+      "name_translated": "Printer Ink",
+      "quantity": "20",
+      "cost": "SAR 2,000.00"
+    }
+  ]
+}</pre>
+        </div>
+
+        <h2 style="color: #1a237e; text-align: center;">🚀 API Usage Example</h2>
+        
+        <div class="output-example">
+            <h4>cURL Request:</h4>
+            <div class="json-preview">
+<pre>curl -X POST "http://localhost:8000/extract" \
+  -H "accept: application/json" \
+  -H "Content-Type: multipart/form-data" \
+  -F "pdf=@invoice.pdf"</pre>
+            </div>
+            
+            <h4>Python Request:</h4>
+            <div class="json-preview">
+<pre>import requests
+
+with open('invoice.pdf', 'rb') as f:
+    files = {'pdf': f}
+    response = requests.post('http://localhost:8000/extract', files=files)
+    data = response.json()
+    print(data)</pre>
+            </div>
+        </div>
+
+        <div class="info-box" style="margin-top: 30px;">
+            <strong>🔧 Integration Ready:</strong> The extracted data is returned in a clean JSON format that can be easily integrated with your existing systems, databases, or workflows. The API supports CORS for web applications and includes comprehensive error handling.
+        </div>
+    </div>
+</body>
+</html>

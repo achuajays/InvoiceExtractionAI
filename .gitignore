@@ -10,10 +10,12 @@ __pycache__/
 *.pyzwz
 *.pyzwzw
 env
+.env
 .qodo
 __pycache__
 image.png
 temp_images/
+temp_uploads/
 *.pdf
 *.txt
 *.json
