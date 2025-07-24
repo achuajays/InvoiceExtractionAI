@@ -291,7 +291,7 @@
         <div class="output-example">
             <h4>cURL Request:</h4>
             <div class="json-preview">
-<pre>curl -X POST "http://localhost:8000/extract" \
+<pre>curl -X POST "https://invoiceextractionai-production.up.railway.app/extract" \
   -H "accept: application/json" \
   -H "Content-Type: multipart/form-data" \
   -F "pdf=@invoice.pdf"</pre>
@@ -303,7 +303,7 @@
 
 with open('invoice.pdf', 'rb') as f:
     files = {'pdf': f}
-    response = requests.post('http://localhost:8000/extract', files=files)
+    response = requests.post('https://invoiceextractionai-production.up.railway.app/extract', files=files)
     data = response.json()
     print(data)</pre>
             </div>

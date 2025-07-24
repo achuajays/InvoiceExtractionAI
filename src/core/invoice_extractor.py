@@ -22,37 +22,47 @@ class InvoiceExtractor:
             Extract ONLY the following invoice details from the image. Return the data in JSON format:
 
 {
-  "party_name": "",
-  "party_name_translated": "",
-  "date": "",
-  "invoice_number": "",
-  "seller_vat_number": "",
-  "client_vat_number": "",
-  "total_amount": "",
-  "vendor_address": "",
-  "vendor_address_translated": "",
+  "partner": "",
+  "vat_number": "",
+  "cr_number": "",
+  "street": "",
+  "street2": "",
+  "country": "",
+  "email": "",
+  "city": "",
+  "mobile": "",
+  "invoice_type": "",
+  "invoice_bill_date": "",
+  "reference": "",
   "detected_language": "",
-  "items": [
+  "invoice_lines": [
     {
-      "name": "",
-      "name_translated": "",
+      "product": "",
       "quantity": "",
-      "cost": ""
+      "unit_price": "",
+      "taxes": ""
     }
   ]
 }
 
 EXTRACTION GUIDELINES:
-1. Extract text in both English and Arabic where available
-2. For dates, use DD/MM/YYYY format
-3. For amounts, include currency and decimal values
-4. If a field is not visible, use empty string ""
-5. For items array, include all line items from the invoice table
-6. Look for VAT numbers in header/footer sections
-7. Party name = client/customer name
-8. Vendor address = seller/company address
-9. Detected language should be "Arabic" or "English" or "Bilingual"
-10. Match English and Arabic versions of the same field
+1. Partner: Extract the client/customer/partner name
+2. VAT Number: Look for VAT registration number (seller or main VAT number)
+3. CR Number: Extract Commercial Registration number if available
+4. Street: Primary address line/street
+5. Street2: Secondary address line if available
+6. Country: Country name from address
+7. Email: Email address if visible
+8. City: City name from address
+9. Mobile: Phone/mobile number if available
+10. Invoice Type: Type of invoice (e.g., "Invoice", "Tax Invoice", "Bill", etc.)
+11. Invoice/Bill Date: Date in DD/MM/YYYY format
+12. Reference: Invoice number or reference number
+13. Invoice Lines: All line items with product name, quantity, unit price, and tax amount
+14. Detected language should be "Arabic", "English", or "Bilingual"
+15. If a field is not visible or not applicable, use empty string ""
+16. For amounts, include only numeric values without currency symbols
+17. Extract all line items from the invoice table/list
 
 IMPORTANT: Only extract the requested fields. Do not add extra information.
             """
