@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Extraction API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background: white;
+            border-bottom: 2px solid white;
+            margin-bottom: -2px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .field-examples {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧾 Invoice Extraction API Tester</h1>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('custom')">Custom Extract</div>
+        <div class="tab" onclick="showTab('predefined')">Predefined Extract</div>
+        <div class="tab" onclick="showTab('fields')">Available Fields</div>
+    </div>
+
+    <!-- Custom Extract Tab -->
+    <div id="custom" class="tab-content active">
+        <div class="container">
+            <h2>Custom Field Extraction</h2>
+            <p>Upload a PDF and specify exactly which fields you want to extract using JSON format.</p>
+            
+            <form id="customExtractForm">
+                <label for="pdfUpload">Upload PDF:</label>
+                <input type="file" id="pdfUpload" name="pdf" accept="application/pdf" required>
+
+                <label for="fields">Fields to Extract (JSON format):</label>
+                <div class="field-examples">
+                    <strong>Examples:</strong><br>
+                    Company Info: <code>{"partner": "Company name", "street": "Address", "city": "City"}</code><br>
+                    Financial: <code>{"total_amount": "Total amount", "tax_amount": "Tax amount", "currency": "Currency"}</code><br>
+                    Invoice Details: <code>{"reference": "Invoice number", "invoice_bill_date": "Invoice date", "due_date": "Due date"}</code>
+                </div>
+                <textarea id="fields" name="fields" rows="8" cols="50" 
+                    placeholder='{"partner": "Company name", "vat_number": "VAT number", "total_amount": "Total amount"}'></textarea>
+
+                <button type="submit">🔍 Extract Custom Fields</button>
+            </form>
+
+            <h3>Response</h3>
+            <pre id="responseDisplay">Upload a PDF and specify fields to see the extraction results...</pre>
+        </div>
+    </div>
+
+    <!-- Predefined Extract Tab -->
+    <div id="predefined" class="tab-content">
+        <div class="container">
+            <h2>Predefined Field Sets</h2>
+            <p>Use predefined field sets for common extraction scenarios.</p>
+            
+            <form id="predefinedExtractForm">
+                <label for="pdfUploadPredefined">Upload PDF:</label>
+                <input type="file" id="pdfUploadPredefined" name="pdf" accept="application/pdf" required>
+
+                <label for="fieldSet">Select Field Set:</label>
+                <select id="fieldSet" name="field_set">
+                    <option value="basic">Basic (partner, date, reference, amount)</option>
+                    <option value="detailed">Detailed (basic + VAT, address, contact)</option>
+                    <option value="accounting">Accounting (detailed + CR number, invoice lines, taxes)</option>
+                </select>
+
+                <button type="submit">🔍 Extract Predefined Fields</button>
+            </form>
+
+            <h3>Response</h3>
+            <pre id="responseDisplayPredefined">Upload a PDF and select a field set to see the extraction results...</pre>
+        </div>
+    </div>
+
+    <!-- Available Fields Tab -->
+    <div id="fields" class="tab-content">
+        <div class="container">
+            <h2>Available Fields</h2>
+            <p>Complete list of all fields that can be extracted from invoices.</p>
+            
+            <h3>Standard Fields</h3>
+            <pre id="fieldsList">Loading available fields...</pre>
+            
+            <h3>API Endpoints</h3>
+            <pre id="endpointsList">Loading API information...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Custom extract form
+        document.getElementById('customExtractForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            const pdfFile = document.getElementById('pdfUpload').files[0];
+            const fields = document.getElementById('fields').value;
+            
+            if (!fields.trim()) {
+                document.getElementById('responseDisplay').textContent = 'Error: Please specify fields to extract';
+                return;
+            }
+            
+            formData.append('pdf', pdfFile);
+            formData.append('fields', fields);
+
+            document.getElementById('responseDisplay').textContent = 'Processing...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/custom-extract', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                document.getElementById('responseDisplay').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('responseDisplay').textContent = 'Error: ' + error;
+            }
+        };
+
+        // Predefined extract form
+        document.getElementById('predefinedExtractForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            const pdfFile = document.getElementById('pdfUploadPredefined').files[0];
+            const fieldSet = document.getElementById('fieldSet').value;
+            formData.append('pdf', pdfFile);
+            formData.append('field_set', fieldSet);
+
+            document.getElementById('responseDisplayPredefined').textContent = 'Processing...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/predefined-extract', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                document.getElementById('responseDisplayPredefined').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('responseDisplayPredefined').textContent = 'Error: ' + error;
+            }
+        };
+
+        // Load available fields
+        fetch('http://localhost:8000/available-fields')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('fieldsList').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                document.getElementById('fieldsList').textContent = 'Error loading fields: ' + error;
+            });
+            
+        // Load API endpoints
+        fetch('http://localhost:8000/')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('endpointsList').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                document.getElementById('endpointsList').textContent = 'Error loading endpoints: ' + error;
+            });
+    </script>
+</body>
+</html>
+

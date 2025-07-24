@@ -3,15 +3,15 @@ from google import genai
 import os
 from models import InvoiceData
 import logging
-from dotenv  import load_dotenv
+from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=".env")
 print("API Key:", os.getenv("GEMINI_API_KEY"))
 
+
 class InvoiceExtractor:
     def __init__(self):
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-
 
     def extract(self, image_path: str) -> InvoiceData:
         try:
@@ -19,54 +19,67 @@ class InvoiceExtractor:
                 img_base64 = base64.b64encode(f.read()).decode("utf-8")
 
             prompt = """
-            Extract ONLY the following invoice details from the image. Return the data in JSON format:
+            
+                # Invoice Data Extraction Prompt
 
+Extract the following information from this invoice/bill image. Focus on the BILLER/SELLER information (not the customer/buyer). Return data in JSON format with these exact keys:
+
+```json
 {
-  "partner": "",
-  "vat_number": "",
-  "cr_number": "",
-  "street": "",
-  "street2": "",
-  "country": "",
-  "email": "",
-  "city": "",
-  "mobile": "",
-  "invoice_type": "",
-  "invoice_bill_date": "",
-  "reference": "",
-  "detected_language": "",
-  "invoice_lines": [
-    {
-      "product": "",
-      "quantity": "",
-      "unit_price": "",
-      "taxes": ""
-    }
-  ]
+  "Partner": "",
+  "VAT_NUMBER": "",
+  "CR_NUMBER": "",
+  "Street": "",
+  "Street2": "",
+  "Country": "",
+  "Email": "",
+  "City": "",
+  "Mobile": "",
+  "INVOICE_TYPE": "",
+  "Invoice_Bill_Date": "",
+  "Reference": "",
+  "Invoice_lines_Product": [],
+  "Invoice_lines_Quantity": [],
+  "Invoice_lines_Unit_Price": [],
+  "Invoice_lines_Taxes": []
 }
+```
 
-EXTRACTION GUIDELINES:
-1. Partner: Extract the client/customer/partner name
-2. VAT Number: Look for VAT registration number (seller or main VAT number)
-3. CR Number: Extract Commercial Registration number if available
-4. Street: Primary address line/street
-5. Street2: Secondary address line if available
-6. Country: Country name from address
-7. Email: Email address if visible
-8. City: City name from address
-9. Mobile: Phone/mobile number if available
-10. Invoice Type: Type of invoice (e.g., "Invoice", "Tax Invoice", "Bill", etc.)
-11. Invoice/Bill Date: Date in DD/MM/YYYY format
-12. Reference: Invoice number or reference number
-13. Invoice Lines: All line items with product name, quantity, unit price, and tax amount
-14. Detected language should be "Arabic", "English", or "Bilingual"
-15. If a field is not visible or not applicable, use empty string ""
-16. For amounts, include only numeric values without currency symbols
-17. Extract all line items from the invoice table/list
+## Extraction Guidelines:
 
-IMPORTANT: Only extract the requested fields. Do not add extra information.
+**BILLER/SELLER Information (TOP SECTION):**
+- **Partner**: Company/business name issuing the invoice
+- **VAT_NUMBER**: VAT registration number of the biller
+- **CR_NUMBER**: Commercial registration number of the biller
+- **Street**: Primary street address of the biller
+- **Street2**: Secondary address line (apartment, suite, etc.)
+- **Country**: Country of the biller
+- **Email**: Contact email of the biller
+- **City**: City of the biller
+- **Mobile**: Phone/mobile number of the biller
+
+**Invoice Details:**
+- **INVOICE_TYPE**: Type (Invoice, Bill, Credit Note, etc.)
+- **Invoice_Bill_Date**: Date when invoice was issued
+- **Reference**: Invoice number or reference ID
+
+**Line Items (Arrays - maintain same order):**
+- **Invoice_lines_Product**: Product/service descriptions
+- **Invoice_lines_Quantity**: Quantities for each item
+- **Invoice_lines_Unit_Price**: Unit price for each item
+- **Invoice_lines_Taxes**: Tax amount or rate for each item
+
+## Important Rules:
+1. If any field is not visible or not present, use "none"
+2. For arrays, if no line items exist, use empty arrays []
+3. Extract only BILLER information, ignore customer details
+4. Look for common variations: VAT No., Tax ID, TRN, etc.
+5. Dates should be in original format shown
+6. Prices should include currency symbol if visible
+7. Return ONLY the JSON object, no additional text
+
+DO NOT OUTPUT ANYTHING OTHER THAN VALID JSON.
             """
-
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=[
