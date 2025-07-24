@@ -1,33 +1,36 @@
 # Invoice Extraction API - Updated Version
 
+![image](image.png)
 This updated version of the Invoice Extraction API now supports multiple file processing and extracts additional invoice details.
 
 ## 🆕 New Features
 
 ### Multiple File Processing
+
 - **Single File**: `/extract` endpoint (same as before)
 - **Multiple Files**: `/extract-multiple` endpoint (new)
 
 ### Enhanced Data Extraction
+
 The API now extracts the following fields from invoice documents:
 
-| Field | Description |
-|-------|-------------|
-| `partner` | Client/customer/partner name |
-| `vat_number` | VAT registration number |
-| `cr_number` | Commercial Registration number |
-| `street` | Primary address line |
-| `street2` | Secondary address line |
-| `country` | Country name |
-| `email` | Email address |
-| `city` | City name |
-| `mobile` | Phone/mobile number |
-| `invoice_type` | Type of invoice (e.g., "Invoice", "Tax Invoice") |
-| `invoice_bill_date` | Invoice date (DD/MM/YYYY format) |
-| `reference` | Invoice number or reference |
-| `invoice_lines` | Array of line items with product, quantity, unit_price, taxes |
-| `detected_language` | Detected language ("Arabic", "English", or "Bilingual") |
-| `filename` | Source filename (for tracking) |
+| Field               | Description                                                   |
+| ------------------- | ------------------------------------------------------------- |
+| `partner`           | Client/customer/partner name                                  |
+| `vat_number`        | VAT registration number                                       |
+| `cr_number`         | Commercial Registration number                                |
+| `street`            | Primary address line                                          |
+| `street2`           | Secondary address line                                        |
+| `country`           | Country name                                                  |
+| `email`             | Email address                                                 |
+| `city`              | City name                                                     |
+| `mobile`            | Phone/mobile number                                           |
+| `invoice_type`      | Type of invoice (e.g., "Invoice", "Tax Invoice")              |
+| `invoice_bill_date` | Invoice date (DD/MM/YYYY format)                              |
+| `reference`         | Invoice number or reference                                   |
+| `invoice_lines`     | Array of line items with product, quantity, unit_price, taxes |
+| `detected_language` | Detected language ("Arabic", "English", or "Bilingual")       |
+| `filename`          | Source filename (for tracking)                                |
 
 ## 📋 API Endpoints
 
@@ -36,6 +39,7 @@ The API now extracts the following fields from invoice documents:
 Extract invoice data from a single PDF file.
 
 **Request:**
+
 ```bash
 curl -X POST "http://localhost:8000/extract" \
   -H "accept: application/json" \
@@ -44,6 +48,7 @@ curl -X POST "http://localhost:8000/extract" \
 ```
 
 **Response:**
+
 ```json
 {
   "partner": "ABC Company Ltd",
@@ -76,6 +81,7 @@ curl -X POST "http://localhost:8000/extract" \
 Extract invoice data from multiple PDF files in a single request.
 
 **Request:**
+
 ```bash
 curl -X POST "http://localhost:8000/extract-multiple" \
   -H "accept: application/json" \
@@ -86,6 +92,7 @@ curl -X POST "http://localhost:8000/extract-multiple" \
 ```
 
 **Response:**
+
 ```json
 {
   "invoices": [
@@ -113,6 +120,7 @@ curl -X POST "http://localhost:8000/extract-multiple" \
 Check if the API is running.
 
 **Response:**
+
 ```json
 {
   "status": "healthy"
@@ -126,17 +134,20 @@ Get API information and available endpoints.
 ## 🚀 Quick Start
 
 1. **Install Dependencies:**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 2. **Set Environment Variables:**
    Create a `.env` file with your Gemini API key:
+
    ```
    GEMINI_API_KEY=your_api_key_here
    ```
 
 3. **Start the Server:**
+
    ```bash
    uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
@@ -160,6 +171,7 @@ Use the provided `test_multiple_files.py` script to test both single and multipl
 ## 📊 Invoice Line Items
 
 Each invoice line item contains:
+
 - **product**: Product or service name
 - **quantity**: Quantity ordered/sold
 - **unit_price**: Price per unit
@@ -168,16 +180,19 @@ Each invoice line item contains:
 ## 🔧 Technical Changes
 
 ### Model Updates
+
 - Replaced old `Item` model with `InvoiceLine` model
 - Updated `InvoiceData` model with new field structure
 - Added `MultipleInvoicesResponse` model for batch processing
 
 ### Pipeline Enhancements
+
 - Added `process_multiple()` method for batch processing
 - Enhanced error handling and logging
 - Improved data combining logic for multi-page documents
 
 ### API Improvements
+
 - New `/extract-multiple` endpoint for batch processing
 - Updated response models
 - Enhanced error handling and validation
@@ -185,6 +200,7 @@ Each invoice line item contains:
 ## 🔍 Extraction Guidelines
 
 The AI model follows these guidelines for extraction:
+
 1. Extracts text in both English and Arabic where available
 2. Uses DD/MM/YYYY format for dates
 3. Includes only numeric values for amounts (no currency symbols)
@@ -195,6 +211,7 @@ The AI model follows these guidelines for extraction:
 ## 🛠️ Development
 
 The codebase structure:
+
 ```
 InvoiceExtractionAI/
 ├── main.py                     # FastAPI application
@@ -221,6 +238,7 @@ InvoiceExtractionAI/
 ## 🤝 API Usage Examples
 
 ### Python with requests:
+
 ```python
 import requests
 
@@ -238,20 +256,21 @@ response = requests.post('http://localhost:8000/extract-multiple', files=files)
 ```
 
 ### JavaScript with fetch:
+
 ```javascript
 // Single file
 const formData = new FormData();
-formData.append('pdf', pdfFile);
-const response = await fetch('/extract', {
-    method: 'POST',
-    body: formData
+formData.append("pdf", pdfFile);
+const response = await fetch("/extract", {
+  method: "POST",
+  body: formData,
 });
 
 // Multiple files
 const formData = new FormData();
-pdfFiles.forEach(file => formData.append('pdfs', file));
-const response = await fetch('/extract-multiple', {
-    method: 'POST',
-    body: formData
+pdfFiles.forEach((file) => formData.append("pdfs", file));
+const response = await fetch("/extract-multiple", {
+  method: "POST",
+  body: formData,
 });
 ```
