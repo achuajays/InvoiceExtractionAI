@@ -66,7 +66,7 @@ Extract the following information from this invoice/bill image. Focus on the BIL
 **Line Items (Arrays - maintain same order):**
 - **Invoice_lines_Product**: Product/service descriptions
 - **Invoice_lines_Quantity**: Quantities for each item
-- **Invoice_lines_Unit_Price**: Unit price for each item
+- **Invoice_lines_Unit_Price**: Unit price for each item ( no need to include the currency symbol or any other text only the number )
 - **Invoice_lines_Taxes**: Tax amount or rate for each item
 
 ## Important Rules:

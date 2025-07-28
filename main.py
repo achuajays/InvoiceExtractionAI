@@ -28,7 +28,7 @@ app.add_middleware(
 
 
 @app.post("/extract", response_model=InvoiceData)
-async def extract_invoice(pdf: UploadFile = File(...)):
+async def extract_invoice(pdf: UploadFile = File(...)): 
     """
     Extract invoice data from an uploaded PDF file.
     Processes all pages and returns a single combined result.
@@ -37,7 +37,7 @@ async def extract_invoice(pdf: UploadFile = File(...)):
 
     Returns extracted invoice data with new field structure.
     """
-    if not pdf.filename.endswith('.pdf'):
+    if not pdf.filename.endswith('.pdf') or pdf.filename.endswith('.PDF'):
         raise HTTPException(
             status_code=400, detail="Only PDF files are supported")
 
@@ -82,7 +82,7 @@ async def extract_multiple_invoices(pdfs: List[UploadFile] = File(...)):
     """
     # Validate all files are PDFs
     for pdf in pdfs:
-        if not pdf.filename.endswith('.pdf'):
+        if not pdf.filename.endswith('.pdf') or pdf.filename.endswith('.PDF'):
             raise HTTPException(
                 status_code=400, detail=f"Only PDF files are supported. Invalid file: {pdf.filename}")
 
