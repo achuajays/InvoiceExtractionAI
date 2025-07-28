@@ -5,295 +5,613 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice Extraction API Test</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .upload-section {
-            margin: 30px 0;
-            text-align: center;
-        }
-        input[type="file"] {
-            padding: 10px;
-            margin: 10px;
-        }
-        button {
-            background-color: #4CAF50;
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        #loading {
-            display: none;
+            padding: 30px;
             text-align: center;
-            margin: 20px 0;
         }
-        #results {
-            margin-top: 30px;
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
         }
-        .page-result {
-            background-color: #f9f9f9;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
         }
-        .page-header {
-            font-size: 18px;
-            font-weight: bold;
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            border-left: 5px solid #4facfe;
+        }
+
+        .section h2 {
             color: #333;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 500;
         }
-        .field {
-            margin: 8px 0;
-            display: flex;
+
+        .form-group {
+            margin-bottom: 20px;
         }
-        .field-label {
-            font-weight: bold;
-            min-width: 180px;
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
             color: #555;
         }
-        .field-value {
-            color: #333;
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
         }
-        .items-section {
-            margin-top: 15px;
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
         }
-        .item {
-            background-color: white;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
+
+        .file-input-display {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border: 2px dashed #4facfe;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 60px;
+        }
+
+        .file-input-display:hover {
+            background: #f0f8ff;
+            border-color: #0066cc;
+        }
+
+        .file-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #4facfe;
+        }
+
+        .file-text {
+            flex: 1;
+            color: #666;
+        }
+
+        .file-count {
+            background: #4facfe;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn.streaming {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .btn.streaming:hover {
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .progress-container {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .log-container {
+            background: #1a1a1a;
+            color: #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .log-entry.success {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .log-entry.error {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff6666;
+        }
+
+        .log-entry.info {
+            background: rgba(0, 100, 255, 0.1);
+            color: #66ccff;
+        }
+
+        .result-container {
+            background: white;
             border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
         }
-        .error {
-            color: #d32f2f;
-            background-color: #ffebee;
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .result-data {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-x: auto;
+        }
+
+        .result-data pre {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .api-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .api-info h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .api-info p {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .api-url {
+            background: #f8f9fa;
             padding: 10px;
             border-radius: 5px;
-            margin: 10px 0;
+            font-family: monospace;
+            border: 1px solid #dee2e6;
         }
-        .success {
-            color: #388e3c;
-            background-color: #e8f5e9;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .processing {
+            animation: pulse 2s infinite;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📋 Invoice Extraction API Test</h1>
-        
-        <div class="upload-section">
-            <input type="file" id="pdfFile" accept=".pdf">
-            <br>
-            <button onclick="extractInvoice()">Extract Invoice Data</button>
-            <button onclick="showDemo()" style="margin-left: 10px; background-color: #2196F3;">Show Demo Output</button>
+        <div class="header">
+            <h1>📄 Invoice Extraction API</h1>
+            <p>Test both traditional and streaming multiple file extraction endpoints</p>
         </div>
-        
-        <div id="loading">
-            <div class="spinner"></div>
-            <p>Processing your PDF...</p>
+
+        <div class="content">
+            <div class="api-info">
+                <h3>🔧 API Configuration</h3>
+                <p>Make sure your FastAPI server is running. Update the base URL below if needed:</p>
+                <div class="api-url" id="apiUrl" contenteditable="true">http://localhost:8000</div>
+            </div>
+
+            <div class="section">
+                <h2>📁 File Selection</h2>
+                <div class="form-group">
+                    <label for="pdfFiles">Select PDF Files (Multiple files supported)</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="pdfFiles" class="file-input" multiple accept=".pdf" />
+                        <div class="file-input-display">
+                            <span class="file-icon">📎</span>
+                            <span class="file-text">Click to select PDF files or drag & drop</span>
+                            <span class="file-count" id="fileCount" style="display: none;">0 files</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button class="btn" id="traditionalBtn" onclick="extractTraditional()">
+                        🔄 Traditional Extraction
+                    </button>
+                    <button class="btn streaming" id="streamingBtn" onclick="extractStreaming()">
+                        ⚡ Streaming Extraction
+                    </button>
+                    <button class="btn" onclick="clearResults()" style="background: #6c757d;">
+                        🗑️ Clear Results
+                    </button>
+                </div>
+            </div>
+
+            <div class="results">
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Starting...</div>
+                </div>
+
+                <div class="log-container" id="logContainer"></div>
+
+                <div class="result-container" id="resultContainer">
+                    <div class="result-header">
+                        <span class="status-badge" id="statusBadge">Processing...</span>
+                        <span id="resultTitle">Extraction Results</span>
+                    </div>
+                    <div class="result-data">
+                        <pre id="resultData"></pre>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div id="results"></div>
     </div>
 
     <script>
-        async function extractInvoice() {
-            const fileInput = document.getElementById('pdfFile');
-            const file = fileInput.files[0];
+        let selectedFiles = [];
+        const apiBaseUrl = () => document.getElementById('apiUrl').textContent.trim();
+
+        // File selection handling
+        document.getElementById('pdfFiles').addEventListener('change', function(e) {
+            selectedFiles = Array.from(e.target.files);
+            updateFileDisplay();
+        });
+
+        function updateFileDisplay() {
+            const fileCount = document.getElementById('fileCount');
+            const fileText = document.querySelector('.file-text');
             
-            if (!file) {
-                alert('Please select a PDF file');
+            if (selectedFiles.length > 0) {
+                fileCount.style.display = 'block';
+                fileCount.textContent = `${selectedFiles.length} files`;
+                fileText.textContent = selectedFiles.map(f => f.name).join(', ');
+            } else {
+                fileCount.style.display = 'none';
+                fileText.textContent = 'Click to select PDF files or drag & drop';
+            }
+        }
+
+        function addLogEntry(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            logContainer.style.display = 'block';
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function showProgress(show = true) {
+            const progressContainer = document.getElementById('progressContainer');
+            progressContainer.style.display = show ? 'block' : 'none';
+        }
+
+        function updateProgress(current, total, message = '') {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            const percentage = total > 0 ? (current / total) * 100 : 0;
+            progressFill.style.width = `${percentage}%`;
+            progressText.textContent = message || `Processing ${current} of ${total} files (${percentage.toFixed(1)}%)`;
+        }
+
+        function showResult(data, status = 'success') {
+            const resultContainer = document.getElementById('resultContainer');
+            const statusBadge = document.getElementById('statusBadge');
+            const resultData = document.getElementById('resultData');
+            
+            resultContainer.style.display = 'block';
+            statusBadge.className = `status-badge status-${status}`;
+            statusBadge.textContent = status === 'success' ? 'Success' : 'Error';
+            resultData.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function disableButtons(disabled = true) {
+            document.getElementById('traditionalBtn').disabled = disabled;
+            document.getElementById('streamingBtn').disabled = disabled;
+        }
+
+        async function extractTraditional() {
+            if (selectedFiles.length === 0) {
+                alert('Please select PDF files first');
                 return;
             }
-            
+
+            addLogEntry('Starting traditional extraction...', 'info');
+            disableButtons(true);
+            showProgress(true);
+            updateProgress(0, selectedFiles.length, 'Preparing files...');
+
             const formData = new FormData();
-            formData.append('pdf', file);
-            
-            const loadingDiv = document.getElementById('loading');
-            const resultsDiv = document.getElementById('results');
-            const button = document.querySelector('button');
-            
-            loadingDiv.style.display = 'block';
-            resultsDiv.innerHTML = '';
-            button.disabled = true;
-            
+            selectedFiles.forEach(file => {
+                formData.append('pdfs', file);
+            });
+
             try {
-                const response = await fetch('https://invoiceextractionai-production.up.railway.app/extract', {
+                const response = await fetch(`${apiBaseUrl()}/extract-multiple`, {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
-                const data = await response.json();
-                displayResults(data);
+
+                updateProgress(selectedFiles.length, selectedFiles.length, 'Processing complete!');
+                addLogEntry('Traditional extraction completed successfully', 'success');
+
+                const result = await response.json();
+                showResult(result, 'success');
+
             } catch (error) {
-                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                addLogEntry(`Traditional extraction failed: ${error.message}`, 'error');
+                showResult({ error: error.message }, 'error');
             } finally {
-                loadingDiv.style.display = 'none';
-                button.disabled = false;
+                disableButtons(false);
+                setTimeout(() => showProgress(false), 2000);
             }
         }
-        
-        function displayResults(data) {
-            const resultsDiv = document.getElementById('results');
-            
-            let html = `
-                <div class="success">
-                    ✅ Successfully extracted invoice data
-                </div>
-            `;
-            
-            // Display the invoice data
-            html += `
-                <div class="page-result">
-                    <div class="page-header">📄 Invoice Details</div>
-                    <div class="field">
-                        <span class="field-label">Party Name:</span>
-                        <span class="field-value">${data.party_name} (${data.party_name_translated})</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">Invoice No:</span>
-                        <span class="field-value">${data.invoice_no}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">Date:</span>
-                        <span class="field-value">${data.date}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">Seller VAT No:</span>
-                        <span class="field-value">${data.seller_vat_no}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">Client VAT No:</span>
-                        <span class="field-value">${data.client_vat_no}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">Total Amount:</span>
-                        <span class="field-value">${data.amount}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">Vendor Address:</span>
-                        <span class="field-value">${data.vendor_addr}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">Translated Address:</span>
-                        <span class="field-value">${data.vendor_addr_translated}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">Language:</span>
-                        <span class="field-value">${data.detected_language}</span>
-                    </div>
-                    
-                    ${data.items && data.items.length > 0 ? `
-                        <div class="items-section">
-                            <div class="field-label">Items (${data.items.length}):</div>
-                            ${data.items.map((item, index) => `
-                                <div class="item">
-                                    ${index + 1}. ${item.name} (${item.name_translated}) - Qty: ${item.quantity} - Cost: ${item.cost}
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : '<div class="field"><span class="field-label">Items:</span><span class="field-value">No items found</span></div>'}
-                </div>
-            `;
-            
-            // Display JSON preview
-            html += `
-                <div class="page-result">
-                    <div class="page-header">📋 JSON Response</div>
-                    <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
-                </div>
-            `;
-            
-            resultsDiv.innerHTML = html;
-        }
-        
-        function showDemo() {
-            // Sample demo data
-            const demoData = {
-                "party_name": "شركة النور للتجارة",
-                "party_name_translated": "Al Noor Trading Company",
-                "date": "15/01/2024",
-                "invoice_no": "INV-2024-0156",
-                "seller_vat_no": "300123456789012",
-                "client_vat_no": "310987654321098",
-                "amount": "SAR 15,750.00",
-                "vendor_addr": "شارع الملك فهد، الرياض 11564",
-                "vendor_addr_translated": "King Fahd Street, Riyadh 11564",
-                "detected_language": "Bilingual",
-                "items": [
-                    {
-                        "name": "طابعة ليزر",
-                        "name_translated": "Laser Printer",
-                        "quantity": "5",
-                        "cost": "SAR 2,500.00"
-                    },
-                    {
-                        "name": "ورق A4",
-                        "name_translated": "A4 Paper",
-                        "quantity": "50",
-                        "cost": "SAR 1,250.00"
-                    },
-                    {
-                        "name": "حبر طابعة",
-                        "name_translated": "Printer Ink",
-                        "quantity": "20",
-                        "cost": "SAR 2,000.00"
+
+        async function extractStreaming() {
+            if (selectedFiles.length === 0) {
+                alert('Please select PDF files first');
+                return;
+            }
+
+            addLogEntry('Starting streaming extraction...', 'info');
+            disableButtons(true);
+            showProgress(true);
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('pdfs', file);
+            });
+
+            let allResults = [];
+            let processedCount = 0;
+
+            try {
+                const response = await fetch(`${apiBaseUrl()}/extract-multiple-stream`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const jsonData = JSON.parse(line.substring(6));
+                                
+                                switch (jsonData.type) {
+                                    case 'metadata':
+                                        addLogEntry(`Processing ${jsonData.total_files} files`, 'info');
+                                        updateProgress(0, jsonData.total_files, 'Starting batch processing...');
+                                        break;
+                                        
+                                    case 'result':
+                                        processedCount++;
+                                        allResults.push(jsonData);
+                                        
+                                        const status = jsonData.status === 'success' ? 'success' : 'error';
+                                        const message = jsonData.status === 'success' 
+                                            ? `✅ ${jsonData.filename} processed successfully`
+                                            : `❌ ${jsonData.filename} failed: ${jsonData.error}`;
+                                        
+                                        addLogEntry(message, status);
+                                        updateProgress(
+                                            jsonData.progress.current,
+                                            jsonData.progress.total,
+                                            `Processed ${jsonData.filename} (${jsonData.progress.percentage}%)`
+                                        );
+                                        break;
+                                        
+                                    case 'complete':
+                                        addLogEntry('All files processed!', 'success');
+                                        updateProgress(processedCount, processedCount, 'Streaming extraction complete!');
+                                        showResult({
+                                            message: 'Streaming extraction completed',
+                                            total_files: processedCount,
+                                            results: allResults
+                                        }, 'success');
+                                        break;
+                                }
+                            } catch (parseError) {
+                                console.warn('Failed to parse streaming data:', parseError);
+                            }
+                        }
                     }
-                ]
-            };
-            
-            // Add demo indicator
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<div class="success" style="background-color: #e3f2fd; color: #1565c0;">🎭 This is a demo output showing what extracted data looks like</div>';
-            
-            // Display the demo data
-            displayResults(demoData);
+                }
+
+            } catch (error) {
+                addLogEntry(`Streaming extraction failed: ${error.message}`, 'error');
+                showResult({ error: error.message }, 'error');
+            } finally {
+                disableButtons(false);
+                setTimeout(() => showProgress(false), 2000);
+            }
         }
+
+        function clearResults() {
+            document.getElementById('logContainer').style.display = 'none';
+            document.getElementById('logContainer').innerHTML = '';
+            document.getElementById('resultContainer').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+        }
+
+        // Drag and drop functionality
+        const fileInputDisplay = document.querySelector('.file-input-display');
+        
+        fileInputDisplay.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileInputDisplay.style.background = '#e3f2fd';
+        });
+
+        fileInputDisplay.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileInputDisplay.style.background = 'white';
+        });
+
+        fileInputDisplay.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileInputDisplay.style.background = 'white';
+            
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
+            if (files.length > 0) {
+                selectedFiles = files;
+                updateFileDisplay();
+                
+                // Update the file input
+                const dt = new DataTransfer();
+                files.forEach(file => dt.items.add(file));
+                document.getElementById('pdfFiles').files = dt.files;
+            }
+        });
     </script>
 </body>
 </html>

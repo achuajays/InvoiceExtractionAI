@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gemini Streamer</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 700px;
+      margin: 50px auto;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+    }
+    #output {
+      white-space: pre-wrap;
+      background: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h2>Gemini 2.5 Streaming</h2>
+  <p>Enter 5 prompts (one per line):</p>
+  <textarea id="prompts"></textarea>
+  <br />
+  <button onclick="startStreaming()">Start</button>
+
+  <h3>Streaming Output:</h3>
+  <div id="output"></div>
+
+  <script>
+    async function startStreaming() {
+      const inputText = document.getElementById("prompts").value.trim();
+      const prompts = inputText.split("\n").filter(line => line.trim() !== "");
+
+      if (prompts.length !== 5) {
+        alert("Please enter exactly 5 lines.");
+        return;
+      }
+
+      const outputDiv = document.getElementById("output");
+      outputDiv.textContent = "Streaming started...\n";
+
+      const response = await fetch("http://localhost:8000/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inputs: prompts })
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        const parts = buffer.split("\n");
+        buffer = parts.pop();  // last may be incomplete
+
+        for (const part of parts) {
+          if (part.trim()) {
+            const json = JSON.parse(part);
+            outputDiv.textContent += `🟢 Input: ${json.input}\n🧠 Output: ${json.output || json.error}\n\n`;
+          }
+        }
+      }
+
+      outputDiv.textContent += "✅ Streaming complete.";
+    }
+  </script>
+</body>
+</html>
