@@ -42,7 +42,7 @@ async def extract_invoice(pdf: UploadFile = File(...)):
 
     Returns extracted invoice data with new field structure.
     """
-    if not pdf.filename.endswith('.pdf'):
+    if not pdf.filename.endswith('.pdf') or pdf.filename.endswith('.PDF'):
         raise HTTPException(
             status_code=400, detail="Only PDF files are supported")
 
@@ -176,7 +176,7 @@ async def extract_multiple_invoices_stream(pdfs: List[UploadFile] = File(...)):
     """
     # Validate all files are PDFs
     for pdf in pdfs:
-        if not pdf.filename.endswith('.pdf'):
+        if not pdf.filename.endswith('.pdf') or pdf.filename.endswith('.PDF'):
             raise HTTPException(
                 status_code=400, detail=f"Only PDF files are supported. Invalid file: {pdf.filename}")
 
@@ -223,7 +223,7 @@ async def extract_multiple_invoices(pdfs: List[UploadFile] = File(...)):
     """
     # Validate all files are PDFs
     for pdf in pdfs:
-        if not pdf.filename.endswith('.pdf'):
+        if not pdf.filename.endswith('.pdf') or pdf.filename.endswith('.PDF'):
             raise HTTPException(
                 status_code=400, detail=f"Only PDF files are supported. Invalid file: {pdf.filename}")
 
@@ -282,7 +282,7 @@ async def custom_extract_with_body(
     
     Returns extracted data based on custom specifications.
     """
-    if not pdf.filename.endswith('.pdf'):
+    if not pdf.filename.endswith('.pdf') or pdf.filename.endswith('.PDF'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
     
     # Parse the fields parameter
@@ -342,7 +342,7 @@ async def predefined_extract(
     
     Returns extracted data for the selected field set.
     """
-    if not pdf.filename.endswith('.pdf'):
+    if not pdf.filename.endswith('.pdf') or pdf.filename.endswith('.PDF'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
     
     # Create a temporary file
