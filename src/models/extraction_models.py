@@ -7,6 +7,7 @@ class InvoiceLineExtracted(BaseModel):
     product: str
     quantity: str
     unit_price: str
+    gross_price: str
     taxes: str
 
 
