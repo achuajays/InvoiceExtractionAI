@@ -3,7 +3,7 @@ import base64
 import os
 import logging
 from dotenv import load_dotenv
-from models import InvoiceData  # Your Pydantic or dataclass schema
+from src.models.extraction_models import InvoiceDataExtracted
 
 load_dotenv(dotenv_path=".env")
 print("API Key:", os.getenv("OPENAI_API_KEY"))
@@ -14,7 +14,7 @@ class InvoiceExtractorOPENAI:
         openai.api_key = os.getenv("OPENAI_API_KEY")
         self.model = "gpt-4.1-2025-04-14"  # or "gpt-4-vision-preview" if you have access
 
-    def extract(self, image_path: str) -> InvoiceData:
+    def extract(self, image_path: str) -> InvoiceDataExtracted:
         try:
             with open(image_path, "rb") as f:
                 img_base64 = base64.b64encode(f.read()).decode("utf-8")
@@ -80,7 +80,7 @@ Mandatory Rules:
                 response_format={"type": "json_object"}
             )
             import json
-            return InvoiceData(**json.loads(response.choices[0].message.content))
+            return InvoiceDataExtracted(**json.loads(response.choices[0].message.content))
         except Exception as e:
             logging.error(f"Extraction failed: {e}")
             return None

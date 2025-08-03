@@ -1,11 +1,20 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+# Temporary model for AI extraction (without vat_amount)
+class InvoiceLineExtracted(BaseModel):
+    product: str
+    quantity: str
+    unit_price: str
+    taxes: str
+
+# Final model with calculated vat_amount
 class InvoiceLine(BaseModel):
     product: str
     quantity: str
     unit_price: str
     taxes: str
+    vat_amount: str  # VAT amount (calculated using quantity × unit_price × 15%)
 
 class InvoiceData(BaseModel):
     partner: str

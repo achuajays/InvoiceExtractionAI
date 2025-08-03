@@ -4,7 +4,8 @@ from pdf_converter import PDFConverter
 from src.core.image_preprocessor import ImagePreprocessor
 from src.core.invoice_extractoropenai import InvoiceExtractorOPENAI
 from src.core.invoice_extractorgemini import InvoiceExtractorGEMINI
-from models import InvoiceData, MultipleInvoicesResponse
+from src.models.models import InvoiceData, MultipleInvoicesResponse
+from src.core.invoice_postprocessor import InvoicePostProcessor
 import os
 from dotenv import load_dotenv
 
@@ -38,16 +39,21 @@ class InvoicePipeline:
                 if preprocess:
                     img = self.preprocessor.preprocess(img)
                 if self.service == "openai":
-                    data = self.extractor_openai.extract(img)
+                    extracted_data = self.extractor_openai.extract(img)
                 else:
-                    data = self.extractor_gemini.extract(img)
-                if data:
-                    if not combined_data:
-                        combined_data = data  # Initialize with the first page data
-                        combined_data.filename = filename
-                    else:
-                        # Combine subsequent page data (merge invoice lines)
-                        combined_data.invoice_lines.extend(data.invoice_lines)
+                    extracted_data = self.extractor_gemini.extract(img)
+                
+                if extracted_data:
+                    # Post-process to add VAT calculations
+                    data = InvoicePostProcessor.add_vat_calculations(extracted_data)
+                    
+                    if data:
+                        if not combined_data:
+                            combined_data = data  # Initialize with the first page data
+                            combined_data.filename = filename
+                        else:
+                            # Combine subsequent page data (merge invoice lines)
+                            combined_data.invoice_lines.extend(data.invoice_lines)
             except Exception as e:
                 logging.error(f"Error processing image {img}: {str(e)}")
 

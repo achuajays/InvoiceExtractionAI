@@ -6,6 +6,7 @@ class InvoiceLine(BaseModel):
     quantity: str
     unit_price: str
     taxes: str
+    vat_amount: str  # QTY * UNIT_PRICE * 15% = VAT AMOUNT
 
 class InvoiceData(BaseModel):
     partner: str

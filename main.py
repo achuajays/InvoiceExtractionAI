@@ -407,6 +407,9 @@ async def read_root():
             "country", "email", "city", "mobile", "invoice_type",
             "invoice_bill_date", "reference", "invoice_lines", "detected_language"
         ],
+        "invoice_line_fields": [
+            "product", "quantity", "unit_price", "taxes", "vat_amount (automatically calculated as QTY × UNIT_PRICE × 15%)"
+        ],
         "predefined_field_sets": {
             "basic": ["partner", "invoice_bill_date", "reference", "total_amount"],
             "detailed": ["partner", "vat_number", "invoice_bill_date", "reference", "street", "city", "country", "email", "mobile"],
@@ -438,7 +441,7 @@ async def get_available_fields():
             "invoice_type": "Type of invoice",
             "invoice_bill_date": "Invoice date (DD/MM/YYYY)",
             "reference": "Invoice number or reference",
-            "invoice_lines": "Array of line items",
+            "invoice_lines": "Array of line items (each with product, quantity, unit_price, taxes, vat_amount)",
             "detected_language": "Detected language",
             "total_amount": "Total invoice amount",
             "tax_amount": "Total tax amount",
