@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 app = FastAPI(
     title="Invoice Extraction API",
     description="Extract invoice data from PDF files using AI",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Add CORS middleware
@@ -39,13 +39,12 @@ async def extract_invoice(pdf: UploadFile = File(...)):
     Extract invoice data from an uploaded PDF file.
     Processes all pages and returns a single combined result.
 
-    - **pdf**: PDF file to process  
+    - **pdf**: PDF file to process
 
     Returns extracted invoice data with new field structure.
     """
-    if not pdf.filename.lower().endswith('.pdf'):
-        raise HTTPException(
-            status_code=400, detail="Only PDF files are supported")
+    if not pdf.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     # Create a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
@@ -68,15 +67,16 @@ async def extract_invoice(pdf: UploadFile = File(...)):
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Extraction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
     finally:
         # Clean up the temporary file
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
 
-def process_single_invoice(temp_path: str, original_filename: str, pipeline: InvoicePipeline) -> dict:
+def process_single_invoice(
+    temp_path: str, original_filename: str, pipeline: InvoicePipeline
+) -> dict:
     """Process a single invoice and return the result with metadata."""
     try:
         # Process the PDF
@@ -88,24 +88,22 @@ def process_single_invoice(temp_path: str, original_filename: str, pipeline: Inv
         return {
             "status": "success",
             "filename": original_filename,
-            "data": invoice_data.dict()
+            "data": invoice_data.dict(),
         }
     except Exception as e:
-        return {
-            "status": "error",
-            "filename": original_filename,
-            "error": str(e)
-        }
+        return {"status": "error", "filename": original_filename, "error": str(e)}
 
 
-async def generate_streaming_results(temp_paths: List[str], original_filenames: List[str]) -> AsyncGenerator[str, None]:
+async def generate_streaming_results(
+    temp_paths: List[str], original_filenames: List[str]
+) -> AsyncGenerator[str, None]:
     """Generate streaming JSON results for multiple invoice processing."""
 
     # Send initial metadata
     initial_data = {
         "type": "metadata",
         "total_files": len(temp_paths),
-        "timestamp": "2024-01-01T00:00:00Z"  # You can use datetime.now().isoformat()
+        "timestamp": "2024-01-01T00:00:00Z",  # You can use datetime.now().isoformat()
     }
     yield f"data: {json.dumps(initial_data)}\n\n"
 
@@ -113,23 +111,21 @@ async def generate_streaming_results(temp_paths: List[str], original_filenames: 
     pipeline = InvoicePipeline()
 
     # Process files and stream results
-    for i, (temp_path, original_filename) in enumerate(zip(temp_paths, original_filenames)):
+    for i, (temp_path, original_filename) in enumerate(
+        zip(temp_paths, original_filenames)
+    ):
         try:
             # Run the CPU-intensive task in thread pool
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
-                executor,
-                process_single_invoice,
-                temp_path,
-                original_filename,
-                pipeline
+                executor, process_single_invoice, temp_path, original_filename, pipeline
             )
 
             # Add progress information
             result["progress"] = {
                 "current": i + 1,
                 "total": len(temp_paths),
-                "percentage": round(((i + 1) / len(temp_paths)) * 100, 2)
+                "percentage": round(((i + 1) / len(temp_paths)) * 100, 2),
             }
             result["type"] = "result"
 
@@ -145,8 +141,8 @@ async def generate_streaming_results(temp_paths: List[str], original_filenames: 
                 "progress": {
                     "current": i + 1,
                     "total": len(temp_paths),
-                    "percentage": round(((i + 1) / len(temp_paths)) * 100, 2)
-                }
+                    "percentage": round(((i + 1) / len(temp_paths)) * 100, 2),
+                },
             }
             yield f"data: {json.dumps(error_result)}\n\n"
 
@@ -154,7 +150,7 @@ async def generate_streaming_results(temp_paths: List[str], original_filenames: 
     completion_data = {
         "type": "complete",
         "message": "All files processed",
-        "timestamp": "2024-01-01T00:00:00Z"  # You can use datetime.now().isoformat()
+        "timestamp": "2024-01-01T00:00:00Z",  # You can use datetime.now().isoformat()
     }
     yield f"data: {json.dumps(completion_data)}\n\n"
 
@@ -177,9 +173,11 @@ async def extract_multiple_invoices_stream(pdfs: List[UploadFile] = File(...)):
     """
     # Validate all files are PDFs
     for pdf in pdfs:
-        if not pdf.filename.lower().endswith('.pdf'):
+        if not pdf.filename.lower().endswith(".pdf"):
             raise HTTPException(
-                status_code=400, detail=f"Only PDF files are supported. Invalid file: {pdf.filename}")
+                status_code=400,
+                detail=f"Only PDF files are supported. Invalid file: {pdf.filename}",
+            )
 
     temp_paths = []
     original_filenames = []
@@ -199,8 +197,8 @@ async def extract_multiple_invoices_stream(pdfs: List[UploadFile] = File(...)):
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-                "Content-Type": "text/plain; charset=utf-8"
-            }
+                "Content-Type": "text/plain; charset=utf-8",
+            },
         )
 
     except Exception as e:
@@ -208,8 +206,7 @@ async def extract_multiple_invoices_stream(pdfs: List[UploadFile] = File(...)):
         for tmp_path in temp_paths:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
-        raise HTTPException(
-            status_code=500, detail=f"Setup failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Setup failed: {str(e)}")
 
 
 @app.post("/extract-multiple", response_model=MultipleInvoicesResponse)
@@ -224,9 +221,11 @@ async def extract_multiple_invoices(pdfs: List[UploadFile] = File(...)):
     """
     # Validate all files are PDFs
     for pdf in pdfs:
-        if not pdf.filename.lower().endswith('.pdf'):
+        if not pdf.filename.lower().endswith(".pdf"):
             raise HTTPException(
-                status_code=400, detail=f"Only PDF files are supported. Invalid file: {pdf.filename}")
+                status_code=400,
+                detail=f"Only PDF files are supported. Invalid file: {pdf.filename}",
+            )
 
     temp_paths = []
     original_filenames = []
@@ -255,8 +254,7 @@ async def extract_multiple_invoices(pdfs: List[UploadFile] = File(...)):
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Extraction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
     finally:
         # Clean up all temporary files
         for tmp_path in temp_paths:
@@ -271,10 +269,7 @@ class CustomExtractionRequest(BaseModel):
 
 
 @app.post("/custom-extract")
-async def custom_extract_with_body(
-    pdf: UploadFile = File(...),
-    fields: str = None
-):
+async def custom_extract_with_body(pdf: UploadFile = File(...), fields: str = None):
     """
     Customizable invoice extraction based on specified fields.
 
@@ -285,21 +280,21 @@ async def custom_extract_with_body(
 
     Returns extracted data based on custom specifications.
     """
-    if not pdf.filename.lower().endswith('.pdf'):
-        raise HTTPException(
-            status_code=400, detail="Only PDF files are supported")
+    if not pdf.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     # Parse the fields parameter
     if not fields:
-        raise HTTPException(
-            status_code=400, detail="Fields parameter is required")
+        raise HTTPException(status_code=400, detail="Fields parameter is required")
 
     try:
         import json
+
         requested_fields = json.loads(fields)
     except json.JSONDecodeError:
         raise HTTPException(
-            status_code=400, detail="Invalid JSON format for fields parameter")
+            status_code=400, detail="Invalid JSON format for fields parameter"
+        )
 
     # Create a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
@@ -310,23 +305,24 @@ async def custom_extract_with_body(
     try:
         # Initialize custom extraction pipeline
         from src.core.custom_extractor import CustomInvoiceExtractor
+
         extractor = CustomInvoiceExtractor()
 
         # Extract data based on custom fields
-        custom_data = extractor.extract_custom_fields(
-            tmp_path, requested_fields)
+        custom_data = extractor.extract_custom_fields(tmp_path, requested_fields)
 
         return {
             "filename": pdf.filename,
             "extracted_data": custom_data,
-            "requested_fields": list(requested_fields.keys())
+            "requested_fields": list(requested_fields.keys()),
         }
 
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Custom extraction failed: {str(e)}")
+            status_code=500, detail=f"Custom extraction failed: {str(e)}"
+        )
     finally:
         # Clean up the temporary file
         if os.path.exists(tmp_path):
@@ -334,10 +330,7 @@ async def custom_extract_with_body(
 
 
 @app.post("/predefined-extract")
-async def predefined_extract(
-    pdf: UploadFile = File(...),
-    field_set: str = "basic"
-):
+async def predefined_extract(pdf: UploadFile = File(...), field_set: str = "basic"):
     """
     Extract predefined sets of fields from invoice.
 
@@ -351,9 +344,8 @@ async def predefined_extract(
 
     Returns extracted data for the selected field set.
     """
-    if not pdf.filename.lower().endswith('.pdf'):
-        raise HTTPException(
-            status_code=400, detail="Only PDF files are supported")
+    if not pdf.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     # Create a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
@@ -364,23 +356,24 @@ async def predefined_extract(
     try:
         # Initialize custom extraction pipeline
         from src.core.custom_extractor import CustomInvoiceExtractor
+
         extractor = CustomInvoiceExtractor()
 
         # Extract data based on predefined field set
-        extracted_data = extractor.extract_predefined_fields(
-            tmp_path, field_set)
+        extracted_data = extractor.extract_predefined_fields(tmp_path, field_set)
 
         return {
             "filename": pdf.filename,
             "field_set": field_set,
-            "extracted_data": extracted_data
+            "extracted_data": extracted_data,
         }
 
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Predefined extraction failed: {str(e)}")
+            status_code=500, detail=f"Predefined extraction failed: {str(e)}"
+        )
     finally:
         # Clean up the temporary file
         if os.path.exists(tmp_path):
@@ -400,27 +393,62 @@ async def read_root():
             "GET /available-fields": "Get list of all available fields for extraction",
             "GET /docs": "Interactive API documentation",
             "GET /redoc": "Alternative API documentation",
-            "GET /health": "Health check endpoint"
+            "GET /health": "Health check endpoint",
         },
         "standard_fields": [
-            "partner", "vat_number", "cr_number", "street", "street2",
-            "country", "email", "city", "mobile", "invoice_type",
-            "invoice_bill_date", "reference", "invoice_lines", "detected_language"
+            "partner",
+            "vat_number",
+            "cr_number",
+            "street",
+            "street2",
+            "country",
+            "email",
+            "city",
+            "mobile",
+            "invoice_type",
+            "invoice_bill_date",
+            "reference",
+            "invoice_lines",
+            "detected_language",
         ],
         "invoice_line_fields": [
-            "product", "quantity", "unit_price", "taxes", "vat_amount (automatically calculated as QTY × UNIT_PRICE × 15%)"
+            "product",
+            "quantity",
+            "unit_price",
+            "taxes",
+            "vat_amount (automatically calculated as QTY × UNIT_PRICE × 15%)",
         ],
         "predefined_field_sets": {
             "basic": ["partner", "invoice_bill_date", "reference", "total_amount"],
-            "detailed": ["partner", "vat_number", "invoice_bill_date", "reference", "street", "city", "country", "email", "mobile"],
-            "accounting": ["partner", "vat_number", "cr_number", "invoice_type", "invoice_bill_date", "reference", "invoice_lines", "total_amount", "tax_amount"]
+            "detailed": [
+                "partner",
+                "vat_number",
+                "invoice_bill_date",
+                "reference",
+                "street",
+                "city",
+                "country",
+                "email",
+                "mobile",
+            ],
+            "accounting": [
+                "partner",
+                "vat_number",
+                "cr_number",
+                "invoice_type",
+                "invoice_bill_date",
+                "reference",
+                "invoice_lines",
+                "total_amount",
+                "tax_amount",
+            ],
         },
         "streaming_info": {
             "streaming_endpoint": "/extract-multiple-stream",
             "format": "Server-Sent Events (SSE)",
             "content_type": "text/plain",
-            "message_types": ["metadata", "result", "complete"]
-        }
+            "message_types": ["metadata", "result", "complete"],
+        },
     }
 
 
@@ -451,28 +479,28 @@ async def get_available_fields():
             "payment_terms": "Payment terms",
             "currency": "Invoice currency",
             "po_number": "Purchase order number",
-            "description": "Invoice description or notes"
+            "description": "Invoice description or notes",
         },
         "custom_examples": {
             "company_info": {
                 "partner": "Company name",
                 "street": "Address",
                 "city": "City",
-                "country": "Country"
+                "country": "Country",
             },
             "financial_summary": {
                 "total_amount": "Total amount",
                 "tax_amount": "Tax amount",
                 "subtotal": "Subtotal",
-                "currency": "Currency"
+                "currency": "Currency",
             },
             "invoice_details": {
                 "reference": "Invoice number",
                 "invoice_bill_date": "Invoice date",
                 "due_date": "Due date",
-                "payment_terms": "Payment terms"
-            }
-        }
+                "payment_terms": "Payment terms",
+            },
+        },
     }
 
 
@@ -484,7 +512,5 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
-
-
-

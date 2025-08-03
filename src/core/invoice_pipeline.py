@@ -42,11 +42,11 @@ class InvoicePipeline:
                     extracted_data = self.extractor_openai.extract(img)
                 else:
                     extracted_data = self.extractor_gemini.extract(img)
-                
+
                 if extracted_data:
                     # Post-process to add VAT calculations
                     data = InvoicePostProcessor.add_vat_calculations(extracted_data)
-                    
+
                     if data:
                         if not combined_data:
                             combined_data = data  # Initialize with the first page data
@@ -62,7 +62,9 @@ class InvoicePipeline:
 
         return combined_data
 
-    def process_multiple(self, pdf_paths: List[str], preprocess=True) -> MultipleInvoicesResponse:
+    def process_multiple(
+        self, pdf_paths: List[str], preprocess=True
+    ) -> MultipleInvoicesResponse:
         """
         Process multiple PDF files and extract invoice data from each.
         Returns a MultipleInvoicesResponse with all processed invoices.
@@ -88,5 +90,5 @@ class InvoicePipeline:
             invoices=invoices,
             total_processed=len(pdf_paths),
             successful_extractions=successful_extractions,
-            failed_extractions=failed_extractions
+            failed_extractions=failed_extractions,
         )

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+
 # Temporary model for AI extraction (without vat_amount)
 class InvoiceLineExtracted(BaseModel):
     product: Optional[str] = ""
@@ -8,6 +9,7 @@ class InvoiceLineExtracted(BaseModel):
     unit_price: Optional[str] = "0"
     taxes: Optional[str] = "0"
     gross_price: Optional[str] = "0"
+
 
 # Final model with calculated vat_amount
 class InvoiceLine(BaseModel):
@@ -17,6 +19,7 @@ class InvoiceLine(BaseModel):
     taxes: Optional[str] = "0"
     gross_price: Optional[str] = "0"
     vat_amount: Optional[str] = "0"
+
 
 class InvoiceData(BaseModel):
     partner: str
@@ -34,6 +37,7 @@ class InvoiceData(BaseModel):
     invoice_lines: List[InvoiceLine]
     detected_language: str
     filename: Optional[str] = None
+
 
 class MultipleInvoicesResponse(BaseModel):
     invoices: List[InvoiceData]

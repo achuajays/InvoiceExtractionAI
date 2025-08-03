@@ -1,16 +1,20 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+
 class InvoiceLineExtracted(BaseModel):
     """Temporary model for AI extraction (without vat_amount)"""
+
     product: Optional[str] = ""
     quantity: Optional[str] = "1"
     unit_price: Optional[str] = "0"
     gross_price: Optional[str] = "0"
     taxes: Optional[str] = "0"
 
+
 class InvoiceDataExtracted(BaseModel):
     """Temporary model for AI extraction (without vat_amount in invoice lines)"""
+
     partner: str
     vat_number: str
     cr_number: str

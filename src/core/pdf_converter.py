@@ -3,6 +3,7 @@ import os
 import logging
 from typing import List
 
+
 class PDFConverter:
     def __init__(self, output_folder: str):
         self.output_folder = output_folder
@@ -14,7 +15,7 @@ class PDFConverter:
             output_paths = []
             for i, image in enumerate(images):
                 path = os.path.join(self.output_folder, f"page_{i+1}.png")
-                image.save(path, 'PNG')
+                image.save(path, "PNG")
                 output_paths.append(path)
             return output_paths
         except Exception as e:

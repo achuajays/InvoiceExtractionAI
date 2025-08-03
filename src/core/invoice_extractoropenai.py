@@ -12,7 +12,9 @@ print("API Key:", os.getenv("OPENAI_API_KEY"))
 class InvoiceExtractorOPENAI:
     def __init__(self):
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        self.model = "gpt-4.1-2025-04-14"  # or "gpt-4-vision-preview" if you have access
+        self.model = (
+            "gpt-4.1-2025-04-14"  # or "gpt-4-vision-preview" if you have access
+        )
 
     def extract(self, image_path: str) -> InvoiceDataExtracted:
         try:
@@ -21,9 +23,7 @@ class InvoiceExtractorOPENAI:
             # Construct the image data for OpenAI API according to requirements
             image_data = {
                 "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/png;base64,{img_base64}"
-                }
+                "image_url": {"url": f"data:image/png;base64,{img_base64}"},
             }
             prompt = """
 You are a specialized, AI-powered data extraction engine. Your mission is to meticulously analyze the provided document image and extract information exclusively about the Biller/Seller. The Biller is the entity that issued the document (e.g., the store, the bank, the utility company).
@@ -145,8 +145,10 @@ DATA EXCLUSION: Do not extract or include information related to warranties, ret
 
             messages = [
                 {"role": "system", "content": prompt},
-                {"role": "user", "content": [
-                    {"type": "text", "text": prompt}, image_data]},
+                {
+                    "role": "user",
+                    "content": [{"type": "text", "text": prompt}, image_data],
+                },
             ]
 
             response = openai.chat.completions.create(
@@ -154,10 +156,13 @@ DATA EXCLUSION: Do not extract or include information related to warranties, ret
                 messages=messages,
                 max_tokens=1200,
                 temperature=0,
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
             import json
-            return InvoiceDataExtracted(**json.loads(response.choices[0].message.content))
+
+            return InvoiceDataExtracted(
+                **json.loads(response.choices[0].message.content)
+            )
         except Exception as e:
             logging.error(f"Extraction failed: {e}")
             return None

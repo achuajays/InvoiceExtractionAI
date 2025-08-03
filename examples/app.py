@@ -2,6 +2,7 @@ from pdf2image import convert_from_path
 import os
 import cv2
 
+
 def pdf_to_png(pdf_path, output_folder):
     """
     Converts each page of the PDF at pdf_path to a PNG image and saves them in output_folder.
@@ -13,9 +14,10 @@ def pdf_to_png(pdf_path, output_folder):
     output_files = []
     for i, image in enumerate(images):
         output_file = os.path.join(output_folder, f"page_{i+1}.png")
-        image.save(output_file, 'PNG')
+        image.save(output_file, "PNG")
         output_files.append(output_file)
     return output_files
+
 
 def preprocess_for_vision_model(img_path):
     import cv2
@@ -31,13 +33,13 @@ def preprocess_for_vision_model(img_path):
     denoised = cv2.fastNlMeansDenoising(gray, h=10)
 
     # Enhance contrast gently
-    clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8,8))
+    clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8, 8))
     enhanced = clahe.apply(denoised)
 
     # Binarization (optional, only if background is uneven)
-    final = cv2.adaptiveThreshold(enhanced, 255,
-                                  cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                  cv2.THRESH_BINARY, 25, 11)
+    final = cv2.adaptiveThreshold(
+        enhanced, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 25, 11
+    )
 
     return final
 
@@ -54,11 +56,13 @@ from google import genai
 from typing import List
 from pydantic import BaseModel
 
+
 # Define schema for items
 class Item(BaseModel):
     name: str
     name_translated: str  # Added translation field
     cost: str
+
 
 # Define full invoice schema
 class InvoiceData(BaseModel):
@@ -73,16 +77,17 @@ class InvoiceData(BaseModel):
     items: List[Item]
     detected_language: str  # Added to track source language
 
+
 def extract_invoice_gemini(image_path: str) -> InvoiceData:
     # Read image and encode as base64
     with open(image_path, "rb") as image_file:
         image_data = base64.b64encode(image_file.read()).decode("utf-8")
-    
+
     # Initialize Gemini client (make sure genai.configure has already been called)
     client = genai.Client(
         api_key="",
     )
-    
+
     # Enhanced prompt with translation instructions
     prompt = """
 You are a document data extraction expert with multilingual capabilities. Extract and return the following fields in structured JSON format:
@@ -115,7 +120,7 @@ IMPORTANT:
 - Return only valid JSON format
 - Ensure all required fields are present
 """
-    
+
     # Gemini Vision API call
     response = client.models.generate_content(
         model="gemini-2.5-flash",
@@ -133,13 +138,14 @@ IMPORTANT:
             "response_schema": InvoiceData,
         },
     )
-    
+
     # Optional: print raw text output
     print("Raw response:")
     print(response.text)
-    
+
     # Return structured data
     return response.parsed
+
 
 # Alternative function for handling different image types
 def extract_invoice_gemini_auto_mime(image_path: str) -> InvoiceData:
@@ -147,21 +153,21 @@ def extract_invoice_gemini_auto_mime(image_path: str) -> InvoiceData:
     Enhanced version that automatically detects image mime type
     """
     import mimetypes
-    
+
     # Detect mime type
     mime_type, _ = mimetypes.guess_type(image_path)
-    if mime_type is None or not mime_type.startswith('image/'):
+    if mime_type is None or not mime_type.startswith("image/"):
         mime_type = "image/jpeg"  # default fallback
-    
+
     # Read image and encode as base64
     with open(image_path, "rb") as image_file:
         image_data = base64.b64encode(image_file.read()).decode("utf-8")
-    
+
     # Initialize Gemini client
     client = genai.Client(
         api_key="",
     )
-    
+
     # Enhanced prompt with translation instructions
     prompt = """
 You are a document data extraction expert with multilingual capabilities. Extract and return the following fields in structured JSON format:
@@ -194,7 +200,7 @@ IMPORTANT:
 - Return only valid JSON format
 - Ensure all required fields are present
 """
-    
+
     # Gemini Vision API call with auto-detected mime type
     response = client.models.generate_content(
         model="gemini-2.5-flash",
@@ -212,16 +218,19 @@ IMPORTANT:
             "response_schema": InvoiceData,
         },
     )
-    
+
     # Print results with translation info
     print("Raw response:")
     print(response.text)
-    
+
     parsed_data = response.parsed
     print(f"\nDetected Language: {parsed_data.detected_language}")
-    print(f"Party Name: {parsed_data.party_name} -> {parsed_data.party_name_translated}")
-    
+    print(
+        f"Party Name: {parsed_data.party_name} -> {parsed_data.party_name_translated}"
+    )
+
     return parsed_data
+
 
 # Example usage
 
@@ -241,7 +250,7 @@ for item in result.items:
         print(f"  - {item.name} ({item.name_translated}): {item.cost}")
     except Exception as e:
         print(f"Error: {e}")
-    
+
 
 data = extract_invoice_gemini(images[0])
 print(data.party_name)

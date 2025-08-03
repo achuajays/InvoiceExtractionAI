@@ -1,12 +1,14 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+
 class InvoiceLine(BaseModel):
     product: str
     quantity: str
     unit_price: str
     taxes: str
     vat_amount: str  # QTY * UNIT_PRICE * 15% = VAT AMOUNT
+
 
 class InvoiceData(BaseModel):
     partner: str
@@ -24,6 +26,7 @@ class InvoiceData(BaseModel):
     invoice_lines: List[InvoiceLine]
     detected_language: str
     filename: Optional[str] = None
+
 
 class MultipleInvoicesResponse(BaseModel):
     invoices: List[InvoiceData]
