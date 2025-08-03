@@ -18,93 +18,118 @@ class InvoiceExtractorGEMINI:
             with open(image_path, "rb") as f:
                 img_base64 = base64.b64encode(f.read()).decode("utf-8")
 
-            prompt = """You are an expert data extraction engine. Your task is to analyze the provided document image and extract specific information, focusing exclusively on the Biller/Seller's details. The Biller is the entity that issued the document or is charging for a service (e.g., the bank charging a fee, the utility company). You must return the extracted data in a strict JSON format according to the schema and rules below.
+            prompt = """You are a specialized invoice data extraction engine. Your mission is to meticulously analyze the provided document image and extract information exclusively about the Biller/Seller. The Biller is the entity that issued the document (e.g., the store, the bank, the utility company).
 
-                Input:
-                An image of an invoice, bill, receipt, or transaction slip.
+You must return a single, valid JSON object. Adhere strictly to the schema and rules below. Do not include any introductory text, explanations, or markdown code fences (```json).
 
-                Output Schema:
-                You must return ONLY a single, valid JSON object. Do not include any introductory text, explanations, or markdown code fences (like ```json). The JSON object must use these exact keys:
-                {
-                "partner": "",
-                "vat_number": "",
-                "cr_number": "",
-                "street": "",
-                "street2": "",
-                "country": "",
-                "email": "",
-                "city": "",
-                "mobile": "",
-                "invoice_type": "",
-                "invoice_bill_date": "",
-                "reference": "",
-                "invoice_lines": [],
-                "detected_language": ""
-                }
-                
-                For invoice_lines, use this structure for each line item:
-                {
-                  "product": "Product/service name",
-                  "quantity": "Quantity or amount",
-                  "unit_price": "Price per unit",
-                  "taxes": "Tax amount or percentage"
-                }
-                Field Definitions & Extraction Guidelines
-                Biller / Seller Information
-                This is the company that issued the document. For a bank slip, the Biller is the Bank. For a store receipt, the Biller is the Store. Actively ignore any sections labeled "Customer", "Recipient", "Beneficiary", "Bill To", or "Ship To".
+Output Schema
 
-                partner: The full legal or trading name of the company/business issuing the document (e.g., "Alinma Bank").
+The entire output must be a single JSON object using these exact keys:
 
-                vat_number: The company's official VAT Registration Number (TRN).
+Generated json
+{
+  "partner": "",
+  "vat_number": "",
+  "cr_number": "",
+  "street": "",
+  "street2": "",
+  "country": "",
+  "email": "",
+  "city": "",
+  "mobile": "",
+  "invoice_type": "",
+  "invoice_bill_date": "",
+  "reference": "",
+  "invoice_lines": [],
+  "detected_language": ""
+}
 
-                Crucial Rule: Do not confuse this with a transactional "VAT Invoice Number". A VAT Registration number is a permanent ID for the company. If you find a "VAT Invoice Number" but no company VAT Reg. No., set this field to empty string "".
+Line Item Schema
 
-                cr_number: The Commercial Registration number. Look for "C.R.", "CRN", "Commercial Registration".
+For the invoice_lines array, each line item must use this exact structure:
 
-                street: The primary street name and number of the biller's address.
+Generated json
+{
+  "product": "Product/service name",
+  "quantity": "Quantity or amount",
+  "unit_price": "Price per unit",
+  "gross_amount": "Total amount before tax",
+  "taxes": "Tax amount or percentage"
+}
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+Json
+IGNORE_WHEN_COPYING_END
+Field Definitions & Extraction Guidelines
+Biller / Seller Information
 
-                street2: Secondary address line (e.g., building, floor). If not present, use empty string "".
+Focus solely on the company that issued the document. Actively ignore any sections labeled "Customer", "Recipient", "Beneficiary", "Bill To", or "Ship To".
 
-                city: The city from the biller's address.
+partner: The full legal or trading name of the company/business that issued the document.
 
-                country: The country of the biller.
+vat_number: The company's official VAT Registration Number (e.g., TRN).
 
-                email: The contact email address of the biller.
+Crucial Rule: This is the company's permanent tax ID. Do not confuse it with a transactional "VAT Invoice Number". If you only find an invoice-specific VAT number but not the company's registration number, leave this field as an empty string "".
 
-                mobile: The contact phone number of the biller. Extract the primary number and remove spaces or special characters (e.g., "800-120-1010" becomes "8001201010").
+cr_number: The Commercial Registration number. Look for labels like "C.R.", "CRN", or "Commercial Registration".
 
-                Document-Level Details
+street: The primary street name and number from the biller's address.
 
-                invoice_type: The main title of the document.
+street2: The secondary address line (e.g., building name, floor). If not present, use "".
 
-                Examples: "Tax Invoice", "Receipt", "Credit Note". If no title is present, infer from the document's nature, such as "Bank Transaction Slip" or "Payment Confirmation".
+city: The city from the biller's address.
 
-                invoice_bill_date: The date the document was issued. You must format this as YYYY-MM-DD. For example, "19/11/2024" becomes "2024-11-19".
+country: The country of the biller's address.
 
-                reference: The unique identifier for the transaction.
+email: The contact email address of the biller.
 
-                Look for "Invoice No.", "Reference Number", "Transaction ID". On a bank slip, this is the long transaction reference.
+mobile: The primary contact phone or mobile number of the biller. You must remove all spaces, hyphens, and parentheses (e.g., "+966 (11) 123-4567" becomes "966111234567").
 
-                detected_language: Detect the primary language of the document (e.g., "Arabic", "English", "Mixed").
+Document-Level Details
 
-                Line Item Details
+invoice_type: The main title of the document (e.g., "Tax Invoice", "Receipt", "Credit Note"). If no title is present, infer the type from its content (e.g., "Bank Transaction Slip", "Payment Confirmation").
 
-                Guideline for Transaction Slips: Line items are the specific fees or charges levied by the biller. The main amount being transferred or paid is not a line item. Focus on charges like "Commission", "Service Fee", "VAT Tax", etc.
+invoice_bill_date: The date the document was issued. You must format this as YYYY-MM-DD. For example, "25 Jan 2024" or "25/01/2024" becomes "2024-01-25".
 
-                For each line item in invoice_lines array:
-                - product: String describing each service charge (e.g., "Commission")
-                - quantity: String/number for the quantity of each service. If not specified, use "1"
-                - unit_price: String/number for the price of each service. Strip all currency symbols and commas
-                - taxes: String/number for the tax applied to each line item. The taxes are mostly in percentage
+reference: The unique identifier for this specific document or transaction. Look for "Invoice No.", "Reference Number", "Transaction ID", or a similar unique code.
 
-                Mandatory Rules
-                JSON Only: The entire output must be a single, raw JSON object.
+detected_language: The primary language of the text in the document (e.g., "Arabic", "English", "Mixed").
 
-                Completeness: You must include all keys from the schema.
+Line Item Details (invoice_lines)
 
-                Missing Information: If a value cannot be found, you must use empty string "".
+Guideline for Transaction Slips: For bank slips or payment confirmations, invoice_lines should only contain the fees or charges levied by the biller (the bank). Examples include "SADAD Fee", "Commission", "Service Charge", "VAT on Fee". The main transaction amount being transferred is not a line item.
 
-                Empty Line Items: If there are no service fees or charges listed, use empty array [] for invoice_lines.
+For each item in the invoice_lines array:
+
+product: A string describing the product or service charge.
+
+quantity: A string representing the quantity. If not explicitly stated, you must use "1".
+
+unit_price: A string representing the price per unit. You must strip all currency symbols and thousand separators. If the price is not present, you must use "0".
+
+gross_amount: A string representing the total price for the line item before taxes are applied (typically Quantity × Unit Price). Strip all currency symbols and thousand separators. If this value is not present or cannot be calculated, you must use "0".
+
+taxes: A string representing the tax applied to the line item.
+
+Mandatory Rules & Constraints
+
+JSON Only Output: Your entire response must be a single, raw JSON object and nothing else.
+
+Schema Adherence: You must include all keys from the schemas in your response.
+
+Handling Missing Data:
+
+If a value for any top-level key cannot be found in the document, you must use an empty string "".
+
+If there are no applicable service fees or charges to list, you must use an empty array [] for the invoice_lines key.
+
+Numeric Value Rule: Within invoice_lines, if a numeric value is not found, you must use the string "0". 
+
+Tax Formatting Rule: For the taxes field inside each line item, the value MUST be either "0" or "15%". If no tax is mentioned for a line item, use "0". No other tax values are permitted.
+
+Data Exclusion: Do not extract or include any information related to product warranties, return policies, website addresses (unless it's an email), or general promotional text. Focus exclusively on the data points defined in the schema.
 
             """
             response = self.client.models.generate_content(
