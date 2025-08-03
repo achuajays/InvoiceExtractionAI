@@ -3,20 +3,20 @@ from typing import List, Optional
 
 # Temporary model for AI extraction (without vat_amount)
 class InvoiceLineExtracted(BaseModel):
-    product: str
-    quantity: str
-    unit_price: str
-    gross_price: str
-    taxes: str
+    product: Optional[str] = ""
+    quantity: Optional[str] = "1"
+    unit_price: Optional[str] = "0"
+    taxes: Optional[str] = "0"
+    gross_price: Optional[str] = "0"
 
 # Final model with calculated vat_amount
 class InvoiceLine(BaseModel):
-    product: str
-    quantity: str
-    unit_price: str
-    taxes: str
-    gross_price: str
-    vat_amount: str  # VAT amount (calculated using quantity × unit_price × 15%)
+    product: Optional[str] = ""
+    quantity: Optional[str] = "1"
+    unit_price: Optional[str] = "0"
+    taxes: Optional[str] = "0"
+    gross_price: Optional[str] = "0"
+    vat_amount: Optional[str] = "0"
 
 class InvoiceData(BaseModel):
     partner: str
