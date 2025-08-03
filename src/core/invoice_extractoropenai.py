@@ -26,7 +26,7 @@ class InvoiceExtractorOPENAI:
                 }
             }
             prompt = """
-You are a specialized invoice data extraction engine. Your mission is to meticulously analyze the provided document image and extract information exclusively about the Biller/Seller. The Biller is the entity that issued the document (e.g., the store, the bank, the utility company).
+You are a specialized, AI-powered data extraction engine. Your mission is to meticulously analyze the provided document image and extract information exclusively about the Biller/Seller. The Biller is the entity that issued the document (e.g., the store, the bank, the utility company).
 
 You must return a single, valid JSON object. Adhere strictly to the schema and rules below. Do not include any introductory text, explanations, or markdown code fences (```json).
 
@@ -79,65 +79,68 @@ partner: The full legal or trading name of the company/business that issued the 
 
 vat_number: The company's official VAT Registration Number (e.g., TRN).
 
-Crucial Rule: This is the company's permanent tax ID. Do not confuse it with a transactional "VAT Invoice Number". If you only find an invoice-specific VAT number but not the company's registration number, leave this field as an empty string "".
+Crucial Rule: This is the company's permanent tax ID. Do not confuse it with a transactional "VAT Invoice Number". If you find only an invoice-specific VAT number but not the company's registration number, leave this field empty.
 
 cr_number: The Commercial Registration number. Look for labels like "C.R.", "CRN", or "Commercial Registration".
 
-street: The primary street name and number from the biller's address.
+street & street2:
 
-street2: The secondary address line (e.g., building name, floor). If not present, use "".
+If the address is on a single line: Extract the entire address line into the street field and leave street2 as an empty string "".
+
+If the address is on two distinct lines: Extract the first line into street and the second line into street2.
+If the vat_number is not found, leave it as an empty string "None".
 
 city: The city from the biller's address.
 
-country: The country of the biller's address.
+country: The country from the biller's address.
 
 email: The contact email address of the biller.
 
-mobile: The primary contact phone or mobile number of the biller. You must remove all spaces, hyphens, and parentheses (e.g., "+966 (11) 123-4567" becomes "966111234567").
+mobile: The primary contact phone number. Look for labels like "Phone", "Tel", "Mobile", "Contact No.". You must remove all non-digit characters (spaces, hyphens, parentheses, '+'). Example: "+966 (11) 123-4567" becomes "966111234567".
 
 Document-Level Details
 
-invoice_type: The main title of the document (e.g., "Tax Invoice", "Receipt", "Credit Note"). If no title is present, infer the type from its content (e.g., "Bank Transaction Slip", "Payment Confirmation").
+invoice_type: The main title of the document (e.g., "Tax Invoice", "Receipt"). If no title is present, infer the type from its content (e.g., "Bank Transaction Slip", "Payment Confirmation").
 
-invoice_bill_date: The date the document was issued. You must format this as YYYY-MM-DD. For example, "25 Jan 2024" or "25/01/2024" becomes "2024-01-25".
+invoice_bill_date: The date the document was issued. You must format this as YYYY-MM-DD. Example: "25 Jan 2024" becomes "2024-01-25".
 
-reference: The unique identifier for this specific document or transaction. Look for "Invoice No.", "Reference Number", "Transaction ID", or a similar unique code.
+reference: The unique identifier for this document. Look for "Invoice No.", "Reference Number", "Transaction ID".
 
 detected_language: The primary language of the text in the document (e.g., "Arabic", "English", "Mixed").
 
 Line Item Details (invoice_lines)
 
-Guideline for Transaction Slips: For bank slips or payment confirmations, invoice_lines should only contain the fees or charges levied by the biller (the bank). Examples include "SADAD Fee", "Commission", "Service Charge", "VAT on Fee". The main transaction amount being transferred is not a line item.
+Guideline: For bank slips or payment confirmations, invoice_lines should only contain fees or charges levied by the biller (e.g., "Service Fee", "VAT on Fee"). The main transaction amount is not a line item.
 
 For each item in the invoice_lines array:
 
 product: A string describing the product or service charge.
 
-quantity: A string representing the quantity. If not explicitly stated, you must use "1".
+gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.
 
-unit_price: A string representing the price per unit. You must strip all currency symbols and thousand separators. If the price is not present, you must use "0".
+unit_price: A string representing the price per unit. Strip all currency symbols and commas.
 
-gross_amount: A string representing the total price for the line item before taxes are applied (typically Quantity × Unit Price). Strip all currency symbols and thousand separators. If this value is not present or cannot be calculated, you must use "0".
+quantity: A string representing the quantity.
 
 taxes: A string representing the tax applied to the line item.
 
-Mandatory Rules & Constraints
+MANDATORY RULES & CONSTRAINTS
 
-JSON Only Output: Your entire response must be a single, raw JSON object and nothing else.
+JSON ONLY OUTPUT: Your entire response must be a single, raw JSON object. No explanations or code fences.
 
-Schema Adherence: You must include all keys from the schemas in your response.
+STRICT SCHEMA ADHERENCE: You must include all keys from the schemas in your response, even if their values are empty.
 
-Handling Missing Data:
+THE GOLDEN RULE FOR MISSING VALUES:
 
-If a value for any top-level key cannot be found in the document, you must use an empty string "".
+A) Non-Numeric Fields: For any field that is not a number (e.g., partner, street, email,street2), if the information cannot be found, you MUST use "None" as the value.
 
-If there are no applicable service fees or charges to list, you must use an empty array [] for the invoice_lines key.
+B) Numeric Fields: For fields within invoice_lines that represent a monetary value (unit_price, gross_amount), if a value is not present or cannot be read, you MUST use the string "0".
 
-Numeric Value Rule: Within invoice_lines, if a numeric value is not found, you must use the string "0". 
+QUANTITY DEFAULT: For the quantity field in invoice_lines, if it is not explicitly stated on the document, you MUST use the string "1".
 
-Tax Formatting Rule: For the taxes field inside each line item, the value MUST be either "0" or "15%". If no tax is mentioned for a line item, use "0". No other tax values are permitted.
+STRICT TAX FORMATTING: For the taxes field inside each line item, the value MUST be either "0" or "15%". If no tax is mentioned for a line item, use "0". No other tax values are permitted.
 
-Data Exclusion: Do not extract or include any information related to product warranties, return policies, website addresses (unless it's an email), or general promotional text. Focus exclusively on the data points defined in the schema.
+DATA EXCLUSION: Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.
             """
 
             messages = [
