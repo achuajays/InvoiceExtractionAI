@@ -6,6 +6,7 @@ class InvoiceLineExtracted(BaseModel):
     product: str
     quantity: str
     unit_price: str
+    gross_price: str
     taxes: str
 
 # Final model with calculated vat_amount
@@ -14,6 +15,7 @@ class InvoiceLine(BaseModel):
     quantity: str
     unit_price: str
     taxes: str
+    gross_price: str
     vat_amount: str  # VAT amount (calculated using quantity × unit_price × 15%)
 
 class InvoiceData(BaseModel):
