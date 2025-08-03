@@ -13,8 +13,7 @@ import tempfile
 import json
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-api = "23423435r43534t5r34tfgerg" 
-api_key = "AIzaSyCh26DwhvK1MwWZu66_yN-ksvFdvE6x_U4"
+
 app = FastAPI(
     title="Invoice Extraction API",
     description="Extract invoice data from PDF files using AI",
@@ -486,5 +485,6 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
+
 
 
