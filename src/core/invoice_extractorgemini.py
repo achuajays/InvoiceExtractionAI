@@ -9,7 +9,7 @@ load_dotenv(dotenv_path=".env")
 print("API Key:", os.getenv("GEMINI_API_KEY"))
 
 
-class InvoiceExtractor:
+class InvoiceExtractorGEMINI:
     def __init__(self):
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 

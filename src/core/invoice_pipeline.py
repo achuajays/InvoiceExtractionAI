@@ -2,16 +2,27 @@ import logging
 from typing import Dict, Optional, List
 from pdf_converter import PDFConverter
 from src.core.image_preprocessor import ImagePreprocessor
-from src.core.invoice_extractor import InvoiceExtractor
+from src.core.invoice_extractoropenai import InvoiceExtractorOPENAI
+from src.core.invoice_extractorgemini import InvoiceExtractorGEMINI
 from models import InvoiceData, MultipleInvoicesResponse
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env file
+
+
+print("SERVICE:", os.getenv("SERVICE"))
+
 
 class InvoicePipeline:
     def __init__(self, output_folder: str = "temp_images"):
         self.pdf_converter = PDFConverter(output_folder)
         self.preprocessor = ImagePreprocessor()
-        self.extractor = InvoiceExtractor()
+        self.extractor_openai = InvoiceExtractorOPENAI()
+        self.extractor_gemini = InvoiceExtractorGEMINI()
         self.output_folder = output_folder
+        self.service = os.getenv("SERVICE")
+
     def process(self, pdf_path: str, preprocess=True) -> Optional[InvoiceData]:
         """
         Process a PDF and extract invoice data from all pages.
@@ -21,13 +32,15 @@ class InvoicePipeline:
         filename = os.path.basename(pdf_path)
 
         image_paths = self.pdf_converter.convert(pdf_path)
-        
+
         for img in image_paths:
             try:
                 if preprocess:
                     img = self.preprocessor.preprocess(img)
-
-                data = self.extractor.extract(img)
+                if self.service == "openai":
+                    data = self.extractor_openai.extract(img)
+                else:
+                    data = self.extractor_gemini.extract(img)
                 if data:
                     if not combined_data:
                         combined_data = data  # Initialize with the first page data
@@ -37,10 +50,10 @@ class InvoicePipeline:
                         combined_data.invoice_lines.extend(data.invoice_lines)
             except Exception as e:
                 logging.error(f"Error processing image {img}: {str(e)}")
-        
+
         if not combined_data:
             raise ValueError("Failed to extract any data from the PDF.")
-        
+
         return combined_data
 
     def process_multiple(self, pdf_paths: List[str], preprocess=True) -> MultipleInvoicesResponse:
@@ -51,7 +64,7 @@ class InvoicePipeline:
         invoices = []
         successful_extractions = 0
         failed_extractions = 0
-        
+
         for pdf_path in pdf_paths:
             try:
                 invoice_data = self.process(pdf_path, preprocess)
@@ -64,7 +77,7 @@ class InvoicePipeline:
             except Exception as e:
                 failed_extractions += 1
                 logging.error(f"Error processing {pdf_path}: {str(e)}")
-        
+
         return MultipleInvoicesResponse(
             invoices=invoices,
             total_processed=len(pdf_paths),

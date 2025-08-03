@@ -32,13 +32,14 @@ app.add_middleware(
 # Thread pool for CPU-intensive tasks
 executor = ThreadPoolExecutor(max_workers=4)
 
+
 @app.post("/extract", response_model=InvoiceData)
 async def extract_invoice(pdf: UploadFile = File(...)):
     """
     Extract invoice data from an uploaded PDF file.
     Processes all pages and returns a single combined result.
 
-    - **pdf**: PDF file to process
+    - **pdf**: PDF file to process  
 
     Returns extracted invoice data with new field structure.
     """
@@ -58,7 +59,7 @@ async def extract_invoice(pdf: UploadFile = File(...)):
 
         # Process the PDF - returns a single InvoiceData object
         invoice_data = pipeline.process(tmp_path, preprocess=True)
-        
+
         # Set the original filename
         invoice_data.filename = pdf.filename
 
@@ -80,10 +81,10 @@ def process_single_invoice(temp_path: str, original_filename: str, pipeline: Inv
     try:
         # Process the PDF
         invoice_data = pipeline.process(temp_path, preprocess=True)
-        
+
         # Set the original filename
         invoice_data.filename = original_filename
-        
+
         return {
             "status": "success",
             "filename": original_filename,
@@ -99,7 +100,7 @@ def process_single_invoice(temp_path: str, original_filename: str, pipeline: Inv
 
 async def generate_streaming_results(temp_paths: List[str], original_filenames: List[str]) -> AsyncGenerator[str, None]:
     """Generate streaming JSON results for multiple invoice processing."""
-    
+
     # Send initial metadata
     initial_data = {
         "type": "metadata",
@@ -107,23 +108,23 @@ async def generate_streaming_results(temp_paths: List[str], original_filenames: 
         "timestamp": "2024-01-01T00:00:00Z"  # You can use datetime.now().isoformat()
     }
     yield f"data: {json.dumps(initial_data)}\n\n"
-    
+
     # Initialize the extraction pipeline
     pipeline = InvoicePipeline()
-    
+
     # Process files and stream results
     for i, (temp_path, original_filename) in enumerate(zip(temp_paths, original_filenames)):
         try:
             # Run the CPU-intensive task in thread pool
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
-                executor, 
-                process_single_invoice, 
-                temp_path, 
-                original_filename, 
+                executor,
+                process_single_invoice,
+                temp_path,
+                original_filename,
                 pipeline
             )
-            
+
             # Add progress information
             result["progress"] = {
                 "current": i + 1,
@@ -131,10 +132,10 @@ async def generate_streaming_results(temp_paths: List[str], original_filenames: 
                 "percentage": round(((i + 1) / len(temp_paths)) * 100, 2)
             }
             result["type"] = "result"
-            
+
             # Stream the result
             yield f"data: {json.dumps(result)}\n\n"
-            
+
         except Exception as e:
             error_result = {
                 "type": "result",
@@ -148,7 +149,7 @@ async def generate_streaming_results(temp_paths: List[str], original_filenames: 
                 }
             }
             yield f"data: {json.dumps(error_result)}\n\n"
-    
+
     # Send completion signal
     completion_data = {
         "type": "complete",
@@ -167,7 +168,7 @@ async def extract_multiple_invoices_stream(pdfs: List[UploadFile] = File(...)):
     - **pdfs**: List of PDF files to process
 
     Returns Server-Sent Events (SSE) stream with real-time processing results.
-    
+
     Response format:
     - Each event contains JSON data with 'type' field indicating the message type
     - 'metadata': Initial information about the batch
@@ -243,7 +244,7 @@ async def extract_multiple_invoices(pdfs: List[UploadFile] = File(...)):
 
         # Process all PDFs
         result = pipeline.process_multiple(temp_paths, preprocess=True)
-        
+
         # Set the original filenames for each invoice
         for i, invoice in enumerate(result.invoices):
             if i < len(original_filenames):
@@ -265,36 +266,41 @@ async def extract_multiple_invoices(pdfs: List[UploadFile] = File(...)):
 
 class CustomExtractionRequest(BaseModel):
     fields: Dict[str, str]  # field_name: description
-    custom_fields: Optional[Dict[str, str]] = {}  # Additional fields not in standard schema
+    # Additional fields not in standard schema
+    custom_fields: Optional[Dict[str, str]] = {}
+
 
 @app.post("/custom-extract")
 async def custom_extract_with_body(
-    pdf: UploadFile = File(...), 
+    pdf: UploadFile = File(...),
     fields: str = None
 ):
     """
     Customizable invoice extraction based on specified fields.
-    
+
     - **pdf**: PDF file to extract data from
     - **fields**: JSON string of fields to extract
-    
+
     Example fields: '{"partner": "Company name", "vat_number": "VAT registration number"}'
-    
+
     Returns extracted data based on custom specifications.
     """
     if not pdf.filename.lower().endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
-    
+        raise HTTPException(
+            status_code=400, detail="Only PDF files are supported")
+
     # Parse the fields parameter
     if not fields:
-        raise HTTPException(status_code=400, detail="Fields parameter is required")
-    
+        raise HTTPException(
+            status_code=400, detail="Fields parameter is required")
+
     try:
         import json
         requested_fields = json.loads(fields)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format for fields parameter")
-    
+        raise HTTPException(
+            status_code=400, detail="Invalid JSON format for fields parameter")
+
     # Create a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
         # Save the uploaded PDF
@@ -305,10 +311,11 @@ async def custom_extract_with_body(
         # Initialize custom extraction pipeline
         from src.core.custom_extractor import CustomInvoiceExtractor
         extractor = CustomInvoiceExtractor()
-        
+
         # Extract data based on custom fields
-        custom_data = extractor.extract_custom_fields(tmp_path, requested_fields)
-        
+        custom_data = extractor.extract_custom_fields(
+            tmp_path, requested_fields)
+
         return {
             "filename": pdf.filename,
             "extracted_data": custom_data,
@@ -318,33 +325,36 @@ async def custom_extract_with_body(
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Custom extraction failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Custom extraction failed: {str(e)}")
     finally:
         # Clean up the temporary file
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
+
 @app.post("/predefined-extract")
 async def predefined_extract(
-    pdf: UploadFile = File(...), 
+    pdf: UploadFile = File(...),
     field_set: str = "basic"
 ):
     """
     Extract predefined sets of fields from invoice.
-    
+
     - **pdf**: PDF file to extract data from
     - **field_set**: Type of field set ("basic", "detailed", "accounting")
-    
+
     Available field sets:
     - basic: partner, invoice_bill_date, reference, total_amount
     - detailed: basic + vat_number, address, contact info
     - accounting: detailed + cr_number, invoice_type, invoice_lines, tax_amount
-    
+
     Returns extracted data for the selected field set.
     """
     if not pdf.filename.lower().endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
-    
+        raise HTTPException(
+            status_code=400, detail="Only PDF files are supported")
+
     # Create a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
         # Save the uploaded PDF
@@ -355,10 +365,11 @@ async def predefined_extract(
         # Initialize custom extraction pipeline
         from src.core.custom_extractor import CustomInvoiceExtractor
         extractor = CustomInvoiceExtractor()
-        
+
         # Extract data based on predefined field set
-        extracted_data = extractor.extract_predefined_fields(tmp_path, field_set)
-        
+        extracted_data = extractor.extract_predefined_fields(
+            tmp_path, field_set)
+
         return {
             "filename": pdf.filename,
             "field_set": field_set,
@@ -368,11 +379,13 @@ async def predefined_extract(
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Predefined extraction failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Predefined extraction failed: {str(e)}")
     finally:
         # Clean up the temporary file
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
+
 
 @app.get("/")
 async def read_root():
@@ -458,6 +471,7 @@ async def get_available_fields():
             }
         }
     }
+
 
 @app.get("/health")
 async def health_check():
