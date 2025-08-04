@@ -91,7 +91,7 @@ mobile: The primary contact phone or mobile number of the biller. You must remov
 
 Document-Level Details
 
-invoice_type: The main title of the document (e.g., "Tax Invoice", "Receipt", "Credit Note"). If no title is present, infer the type from its content (e.g., "Bank Transaction Slip", "Payment Confirmation").
+invoice_type: check if the document is a tax invoice or a receipt. if it is a tax invoice, return True, otherwise return False.
 
 invoice_bill_date: The date the document was issued. You must format this as YYYY-MM-DD. For example, "25 Jan 2024" or "25/01/2024" becomes "2024-01-25".
 

@@ -1,11 +1,10 @@
 from typing import List, Optional
-
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class InvoiceLineExtracted(BaseModel):
     """Temporary model for AI extraction (without vat_amount)"""
-
+    
     product: Optional[str] = ""
     quantity: Optional[str] = "1"
     unit_price: Optional[str] = "0"
@@ -15,7 +14,7 @@ class InvoiceLineExtracted(BaseModel):
 
 class InvoiceDataExtracted(BaseModel):
     """Temporary model for AI extraction (without vat_amount in invoice lines)"""
-
+    
     partner: str
     vat_number: str
     cr_number: str
@@ -25,7 +24,7 @@ class InvoiceDataExtracted(BaseModel):
     email: str
     city: str
     mobile: str
-    invoice_type: str
+    invoice_type: bool = Field(default=False)  # Changed from str to bool with default False
     invoice_bill_date: str
     reference: str
     invoice_lines: List[InvoiceLineExtracted]
