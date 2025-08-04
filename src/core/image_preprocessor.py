@@ -1,6 +1,7 @@
-import cv2
-import os
 import logging
+import os
+
+import cv2
 
 
 class ImagePreprocessor:

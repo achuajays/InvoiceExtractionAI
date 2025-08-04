@@ -4,8 +4,9 @@ Simple invoice extraction script that only extracts and prints data.
 No storage functionality - just pure extraction and display.
 """
 
-from invoice_pipeline import InvoicePipeline
 import sys
+
+from invoice_pipeline import InvoicePipeline
 
 
 def extract_and_print(pdf_path: str, preprocess: bool = True):

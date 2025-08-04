@@ -1,6 +1,7 @@
-from pdf2image import convert_from_path
 import os
+
 import cv2
+from pdf2image import convert_from_path
 
 
 def pdf_to_png(pdf_path, output_folder):
@@ -52,8 +53,9 @@ cv2.imwrite("new_image.png", new_image)
 
 
 import base64
-from google import genai
 from typing import List
+
+from google import genai
 from pydantic import BaseModel
 
 

@@ -1,7 +1,8 @@
-from pdf2image import convert_from_path
-import os
 import logging
+import os
 from typing import List
+
+from pdf2image import convert_from_path
 
 
 class PDFConverter:

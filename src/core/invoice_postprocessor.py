@@ -1,8 +1,9 @@
+import logging
+from typing import Optional
+
 from src.models.extraction_models import InvoiceDataExtracted, InvoiceLineExtracted
 from src.models.models import InvoiceData, InvoiceLine
 from src.utils.vat_calculator import VATCalculator
-from typing import Optional
-import logging
 
 
 class InvoicePostProcessor:

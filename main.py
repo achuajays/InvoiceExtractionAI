@@ -1,18 +1,18 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+import asyncio
+import json
+import os
+import shutil
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from typing import Any, AsyncGenerator, Dict, List, Optional
+
+from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
-from typing import Any, AsyncGenerator
-from fastapi.middleware.cors import CORSMiddleware
+
 from src.core.invoice_pipeline import InvoicePipeline
 from src.models.models import InvoiceData, InvoiceLine, MultipleInvoicesResponse
-from typing import Dict, List, Optional
-from pydantic import BaseModel
-import shutil
-import os
-import tempfile
-import json
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 
 app = FastAPI(
     title="Invoice Extraction API",

@@ -1,9 +1,11 @@
 import base64
-from google import genai
-import os
-from src.models.extraction_models import InvoiceDataExtracted
 import logging
+import os
+
 from dotenv import load_dotenv
+from google import genai
+
+from src.models.extraction_models import InvoiceDataExtracted
 
 load_dotenv(dotenv_path=".env")
 print("API Key:", os.getenv("GEMINI_API_KEY"))

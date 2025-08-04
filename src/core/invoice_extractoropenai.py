@@ -1,8 +1,10 @@
-import openai
 import base64
-import os
 import logging
+import os
+
+import openai
 from dotenv import load_dotenv
+
 from src.models.extraction_models import InvoiceDataExtracted
 
 load_dotenv(dotenv_path=".env")

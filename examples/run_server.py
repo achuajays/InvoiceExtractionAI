@@ -2,9 +2,10 @@
 """
 Script to run the Invoice Extraction FastAPI server
 """
-import uvicorn
-import sys
 import os
+import sys
+
+import uvicorn
 
 
 def main():

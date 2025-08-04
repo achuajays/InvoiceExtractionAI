@@ -1,5 +1,5 @@
-from decimal import Decimal, InvalidOperation
 import re
+from decimal import Decimal, InvalidOperation
 from typing import Union
 
 

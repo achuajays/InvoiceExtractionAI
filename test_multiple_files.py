@@ -3,9 +3,10 @@ Test script for multiple file processing functionality.
 This script demonstrates how to use the new multiple file processing capabilities.
 """
 
-import requests
 import json
 from pathlib import Path
+
+import requests
 
 
 def test_single_extraction(file_path: str, api_url: str = "http://localhost:8000"):

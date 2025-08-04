@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 # Temporary model for AI extraction (without vat_amount)
