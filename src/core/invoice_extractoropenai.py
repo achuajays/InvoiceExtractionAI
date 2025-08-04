@@ -116,7 +116,8 @@ Guideline: For bank slips or payment confirmations, invoice_lines should only co
 
 For each item in the invoice_lines array:
 
-product: A string describing the product or service charge.
+product: A string describing the product or service charge. take it even if its in arabic.
+
 
 gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.
 
