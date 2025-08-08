@@ -15,7 +15,7 @@ class InvoiceExtractorOPENAI:
     def __init__(self):
         openai.api_key = os.getenv("OPENAI_API_KEY")
         self.model = (
-            "gpt-5-2025-08-07"  # or "gpt-4-vision-preview" if you have access
+            "gpt-4.1-2025-04-14"  # or "gpt-4-vision-preview" if you have access
         )
 
     def extract(self, image_path: str) -> InvoiceDataExtracted:
@@ -116,8 +116,7 @@ Guideline: For bank slips or payment confirmations, invoice_lines should only co
 
 For each item in the invoice_lines array:
 
-product: A string describing the product or service charge. take it even if its in arabic.
-
+product: A string describing the product or service charge.
 
 gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.
 
@@ -157,6 +156,8 @@ DATA EXCLUSION: Do not extract or include information related to warranties, ret
             response = openai.chat.completions.create(
                 model=self.model,
                 messages=messages,
+                max_tokens=1200,
+                temperature=0,
                 response_format={"type": "json_object"},
             )
             import json
