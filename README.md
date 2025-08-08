@@ -3,15 +3,6 @@
 ![image](image.png)
 This updated version of the Invoice Extraction API now supports multiple file processing and extracts additional invoice details.
 
-## 🔄 CI/CD Pipeline
-
-This project includes several GitHub Actions workflows for continuous integration and deployment:
-
-- **Code Quality**: Checks code formatting and quality using Black, isort, and Flake8
-- **Docker Image Build and Scan**: Builds and scans Docker images for vulnerabilities
-- **Secret Scan**: Scans codebase for exposed secrets using GitLeaks
-- **Branch Cleanup After Development Merge**: Automatically deletes PR branches after they are merged into the development branch
-
 ## 🆕 New Features
 
 ### Multiple File Processing
