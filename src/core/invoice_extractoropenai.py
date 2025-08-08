@@ -15,7 +15,7 @@ class InvoiceExtractorOPENAI:
     def __init__(self):
         openai.api_key = os.getenv("OPENAI_API_KEY")
         self.model = (
-            "gpt-4.1-2025-04-14"  # or "gpt-4-vision-preview" if you have access
+            "gpt-5-2025-08-07"  # or "gpt-4-vision-preview" if you have access
         )
 
     def extract(self, image_path: str) -> InvoiceDataExtracted:
@@ -157,8 +157,6 @@ DATA EXCLUSION: Do not extract or include information related to warranties, ret
             response = openai.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                max_tokens=1200,
-                temperature=0,
                 response_format={"type": "json_object"},
             )
             import json
