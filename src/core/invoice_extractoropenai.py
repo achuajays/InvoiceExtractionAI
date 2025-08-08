@@ -15,7 +15,7 @@ class InvoiceExtractorOPENAI:
     def __init__(self):
         openai.api_key = os.getenv("OPENAI_API_KEY")
         self.model = (
-            "gpt-5-2025-08-07"  # or "gpt-4-vision-preview" if you have access
+            "gpt-5-mini-2025-08-07"  # or "gpt-4-vision-preview" if you have access
         )
 
     def extract(self, image_path: str) -> InvoiceDataExtracted:
