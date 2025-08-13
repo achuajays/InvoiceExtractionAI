@@ -68,24 +68,19 @@ Generated json
   "gross_amount": "Total amount before tax",
   "taxes": "Tax amount or percentage"
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-Json
-IGNORE_WHEN_COPYING_END
+
 Field Definitions & Extraction Guidelines
 Biller / Seller Information
 
 Focus solely on the company that issued the document. Actively ignore any sections labeled "Customer", "Recipient", "Beneficiary", "Bill To", or "Ship To".
 
-partner: The full legal or trading name of the company/business that issued the document.
+partner: The full legal or trading name of the company/business that issued the document.Must be extract the correct partner name that is visible in the image.
 
-vat_number: The company's official VAT Registration Number (e.g., TRN).
+vat_number: The company's official VAT Registration Number (e.g., TRN).Must be 15 characters long.Example: "123456789012345".Extract correctly after removing any leading or trailing spaces.
 
 Crucial Rule: This is the company's permanent tax ID. Do not confuse it with a transactional "VAT Invoice Number". If you find only an invoice-specific VAT number but not the company's registration number, leave this field empty.
 
-cr_number: The Commercial Registration number. Look for labels like "C.R.", "CRN", or "Commercial Registration".
+cr_number: The Commercial Registration number. Look for labels like "C.R.", "CRN", or "Commercial Registration".Must be 10 characters long.Example: "1234567890".Extract correctly after removing any leading or trailing spaces.
 
 street & street2:
 
@@ -114,7 +109,7 @@ detected_language: The primary language of the text in the document (e.g., "Arab
 
 discount: The total discount amount applied to the invoice. Look for fields like "Discount", "Discount Amount", "Total Discount". Strip all currency symbols and commas. If no discount is mentioned, use "0".
 
-currency: The currency used in the document (e.g., "SAR", "USD", "EUR"). Look for currency symbols or abbreviations throughout the document.
+currency: The currency used in the document (e.g., "SAR", "USD", "EUR"). Look for currency symbols or abbreviations throughout the document.Must be 3 characters long.Example: "SAR".Extract correctly after removing any leading or trailing spaces.
 
 Line Item Details (invoice_lines)
 
@@ -125,9 +120,9 @@ For each item in the invoice_lines array:
 product: A string describing the product or service charge. take it even if its in arabic.
 
 
-gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.
+gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.
 
-unit_price: A string representing the price per unit. Strip all currency symbols and commas.
+unit_price: A string representing the price per unit. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.Unit price must be extracted after applying discount.
 
 quantity: A string representing the quantity.
 
