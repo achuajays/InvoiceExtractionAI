@@ -51,7 +51,9 @@ Generated json
   "invoice_bill_date": "",
   "reference": "",
   "invoice_lines": [],
-  "detected_language": ""
+  "detected_language": "",
+  "discount": "",
+  "currency": ""
 }
 
 Line Item Schema
@@ -110,6 +112,10 @@ reference: The unique identifier for this document. Look for "Invoice No.", "Ref
 
 detected_language: The primary language of the text in the document (e.g., "Arabic", "English", "Mixed").
 
+discount: The total discount amount applied to the invoice. Look for fields like "Discount", "Discount Amount", "Total Discount". Strip all currency symbols and commas. If no discount is mentioned, use "0".
+
+currency: The currency used in the document (e.g., "SAR", "USD", "EUR"). Look for currency symbols or abbreviations throughout the document.
+
 Line Item Details (invoice_lines)
 
 Guideline: For bank slips or payment confirmations, invoice_lines should only contain fees or charges levied by the biller (e.g., "Service Fee", "VAT on Fee"). The main transaction amount is not a line item.
@@ -135,9 +141,9 @@ STRICT SCHEMA ADHERENCE: You must include all keys from the schemas in your resp
 
 THE GOLDEN RULE FOR MISSING VALUES:
 
-A) Non-Numeric Fields: For any field that is not a number (e.g., partner, street, email,street2), if the information cannot be found, you MUST use "None" as the value.
+A) Non-Numeric Fields: For any field that is not a number (e.g., partner, street, email, street2, currency), if the information cannot be found, you MUST use "None" as the value.
 
-B) Numeric Fields: For fields within invoice_lines that represent a monetary value (unit_price, gross_amount), if a value is not present or cannot be read, you MUST use the string "0".
+B) Numeric Fields: For fields within invoice_lines that represent a monetary value (unit_price, gross_amount) and the discount field, if a value is not present or cannot be read, you MUST use the string "0".
 
 QUANTITY DEFAULT: For the quantity field in invoice_lines, if it is not explicitly stated on the document, you MUST use the string "1".
 

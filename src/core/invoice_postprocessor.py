@@ -59,6 +59,8 @@ class InvoicePostProcessor:
                 reference=extracted_data.reference,
                 invoice_lines=processed_lines,
                 detected_language=extracted_data.detected_language,
+                discount=extracted_data.discount,
+                currency=extracted_data.currency,
                 filename=extracted_data.filename,
             )
 
