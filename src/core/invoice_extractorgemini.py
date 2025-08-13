@@ -43,7 +43,9 @@ Generated json
   "invoice_bill_date": "",
   "reference": "",
   "invoice_lines": [],
-  "detected_language": ""
+  "detected_language": "",
+  "discount": "",
+  "currency": ""
 }
 
 Line Item Schema
@@ -99,6 +101,10 @@ reference: The unique identifier for this specific document or transaction. Look
 
 detected_language: The primary language of the text in the document (e.g., "Arabic", "English", "Mixed").
 
+discount: The total discount amount applied to the invoice. Look for fields like "Discount", "Discount Amount", "Total Discount". Strip all currency symbols and thousand separators. If no discount is mentioned, use "0".
+
+currency: The currency used in the document (e.g., "SAR", "USD", "EUR"). Look for currency symbols or abbreviations throughout the document. If not found, use an empty string "".
+
 Line Item Details (invoice_lines)
 
 Guideline for Transaction Slips: For bank slips or payment confirmations, invoice_lines should only contain the fees or charges levied by the biller (the bank). Examples include "SADAD Fee", "Commission", "Service Charge", "VAT on Fee". The main transaction amount being transferred is not a line item.
@@ -123,7 +129,7 @@ Schema Adherence: You must include all keys from the schemas in your response.
 
 Handling Missing Data:
 
-If a value for any top-level key cannot be found in the document, you must use an empty string "".
+If a value for any top-level key cannot be found in the document, you must use an empty string "". However, for the discount field, if no discount is found, use "0".
 
 If there are no applicable service fees or charges to list, you must use an empty array [] for the invoice_lines key.
 

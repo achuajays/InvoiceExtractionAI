@@ -37,6 +37,8 @@ class InvoiceData(BaseModel):
     reference: str
     invoice_lines: List[InvoiceLine]
     detected_language: str
+    discount: Optional[str] = "0"
+    currency: Optional[str] = ""
     filename: Optional[str] = None
 
 

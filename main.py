@@ -410,6 +410,8 @@ async def read_root():
             "reference",
             "invoice_lines",
             "detected_language",
+            "discount",
+            "currency",
         ],
         "invoice_line_fields": [
             "product",
@@ -471,6 +473,8 @@ async def get_available_fields():
             "reference": "Invoice number or reference",
             "invoice_lines": "Array of line items (each with product, quantity, unit_price, taxes, vat_amount)",
             "detected_language": "Detected language",
+            "discount": "Discount amount applied to the invoice",
+            "currency": "Currency used in the document (e.g., SAR, USD, EUR)",
             "total_amount": "Total invoice amount",
             "tax_amount": "Total tax amount",
             "subtotal": "Subtotal before taxes",
