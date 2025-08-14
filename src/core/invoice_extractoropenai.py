@@ -84,10 +84,9 @@ cr_number: The Commercial Registration number. Look for labels like "C.R.", "CRN
 
 street & street2:
 
-If the address is on a single line: Extract the entire address line into the street field and leave street2 as an empty string "".
+If the address is on a single line: Extract the entire address line into the street field and leave street2 as an empty string "".Must extract the correct details from the image.There is no need to extract the city name, country name from the address.Only extract the street name and number.
 
-If the address is on two distinct lines: Extract the first line into street and the second line into street2.
-If the vat_number is not found, leave it as an empty string "None".
+If the address is on two distinct lines: Extract the first line into street and the second line into street2.Must extract the correct details from the image.
 
 city: The city from the biller's address.
 
@@ -120,13 +119,13 @@ For each item in the invoice_lines array:
 product: A string describing the product or service charge. take it even if its in arabic.Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.
 
 
-gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.
+gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.Do not return it as string.
 
-unit_price: A string representing the price per unit. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.Unit price must be extracted after applying discount.
+unit_price: A string representing the price per unit. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.Unit price must be extracted after applying discount.Do not return it as string.
 
-quantity: A string representing the quantity.
+quantity: A string representing the quantity.Do not return it as string.
 
-taxes: A string representing the tax applied to the line item.
+taxes: A string representing the tax applied to the line item.Do not return it as string.
 
 MANDATORY RULES & CONSTRAINTS
 
@@ -144,7 +143,7 @@ QUANTITY DEFAULT: For the quantity field in invoice_lines, if it is not explicit
 
 STRICT TAX FORMATTING: For the taxes field inside each line item, the value MUST be either "0" or "15%". If no tax is mentioned for a line item, use "0". No other tax values are permitted.
 
-DATA EXCLUSION: Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.
+DATA EXCLUSION: Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.Also do not extract any information that is not related to the defined data points like E-Vouchers,Complementry etc.
             """
 
             messages = [
