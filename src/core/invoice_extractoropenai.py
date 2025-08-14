@@ -74,7 +74,7 @@ Biller / Seller Information
 
 Focus solely on the company that issued the document. Actively ignore any sections labeled "Customer", "Recipient", "Beneficiary", "Bill To", or "Ship To".
 
-partner: The full legal or trading name of the company/business that issued the document.Must be extract the correct partner name that is visible in the image.
+partner: The full legal or trading name of the company/business that issued the document.Must be extract the correct partner name that is visible in the image.Must be extracted from Header section,if not found in header section then extract from footer section.
 
 vat_number: The company's official VAT Registration Number (e.g., TRN).Must be 15 characters long.Example: "123456789012345".Extract correctly after removing any leading or trailing spaces.
 
@@ -101,7 +101,7 @@ Document-Level Details
 
 invoice_type: The main title of the document (e.g., "Tax Invoice", "Receipt"). If no title is present, infer the type from its content (e.g., "Bank Transaction Slip", "Payment Confirmation").
 
-invoice_bill_date: The date the document was issued. You must format this as YYYY-MM-DD. Example: "25 Jan 2024" becomes "2024-01-25".
+invoice_bill_date: The date the document was issued. You must format this as YYYY-MM-DD. Example: "25 Jan 2024" becomes "2024-01-25".Must extract the correct date when the invoice is issued.
 
 reference: The unique identifier for this document. Look for "Invoice No.", "Reference Number", "Transaction ID".
 
@@ -117,7 +117,7 @@ Guideline: For bank slips or payment confirmations, invoice_lines should only co
 
 For each item in the invoice_lines array:
 
-product: A string describing the product or service charge. take it even if its in arabic.
+product: A string describing the product or service charge. take it even if its in arabic.Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.
 
 
 gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.
