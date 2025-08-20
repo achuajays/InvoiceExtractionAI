@@ -30,7 +30,7 @@ class InvoiceExtractorOPENAI:
             prompt = """
 You are a specialized, AI-powered data extraction engine. Your mission is to meticulously analyze the provided document image and extract information exclusively about the Biller/Seller. The Biller is the entity that issued the document (e.g., the store, the bank, the utility company).
 
-You must return a single, valid JSON object. Adhere strictly to the schema and rules below. Do not include any introductory text, explanations, or markdown code fences (```json).
+You must return a  valid JSON object. Adhere strictly to the schema and rules below. Do not include any introductory text, explanations, or markdown code fences (```json).
 
 Output Schema
 
@@ -116,8 +116,8 @@ Guideline: For bank slips or payment confirmations, invoice_lines should only co
 
 For each item in the invoice_lines array:
 
-product: A string describing the product or service charge. take it even if its in arabic.Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.
 
+product: A string describing the product or service charge. take it even if its in arabic.Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.
 
 gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.Do not return it as string.
 
@@ -157,6 +157,8 @@ DATA EXCLUSION: Do not extract or include information related to warranties, ret
             response = openai.chat.completions.create(
                 model=self.model,
                 messages=messages,
+                max_tokens=1200,
+                temperature=0,
                 response_format={"type": "json_object"},
             )
             import json
