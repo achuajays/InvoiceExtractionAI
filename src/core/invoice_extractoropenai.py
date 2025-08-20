@@ -157,8 +157,6 @@ DATA EXCLUSION: Do not extract or include information related to warranties, ret
             response = openai.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                max_tokens=1200,
-                temperature=0,
                 response_format={"type": "json_object"},
             )
             import json
