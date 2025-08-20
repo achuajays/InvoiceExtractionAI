@@ -15,7 +15,7 @@ class InvoiceExtractorOPENAI:
     def __init__(self):
         openai.api_key = os.getenv("OPENAI_API_KEY")
         self.model = (
-            "gpt-4.1-2025-04-14"  # or "gpt-4-vision-preview" if you have access
+            "gpt-5-mini-2025-08-07"  # or "gpt-4-vision-preview" if you have access
         )
 
     def extract(self, image_path: str) -> InvoiceDataExtracted:
@@ -30,7 +30,7 @@ class InvoiceExtractorOPENAI:
             prompt = """
 You are a specialized, AI-powered data extraction engine. Your mission is to meticulously analyze the provided document image and extract information exclusively about the Biller/Seller. The Biller is the entity that issued the document (e.g., the store, the bank, the utility company).
 
-You must return a single, valid JSON object. Adhere strictly to the schema and rules below. Do not include any introductory text, explanations, or markdown code fences (```json).
+You must return a  valid JSON object. Adhere strictly to the schema and rules below. Do not include any introductory text, explanations, or markdown code fences (```json).
 
 Output Schema
 
@@ -51,7 +51,9 @@ Generated json
   "invoice_bill_date": "",
   "reference": "",
   "invoice_lines": [],
-  "detected_language": ""
+  "detected_language": "",
+  "discount": "",
+  "currency": ""
 }
 
 Line Item Schema
@@ -66,31 +68,25 @@ Generated json
   "gross_amount": "Total amount before tax",
   "taxes": "Tax amount or percentage"
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-Json
-IGNORE_WHEN_COPYING_END
+
 Field Definitions & Extraction Guidelines
 Biller / Seller Information
 
 Focus solely on the company that issued the document. Actively ignore any sections labeled "Customer", "Recipient", "Beneficiary", "Bill To", or "Ship To".
 
-partner: The full legal or trading name of the company/business that issued the document.
+partner: The full legal or trading name of the company/business that issued the document.Must be extract the correct partner name that is visible in the image.Must be extracted from Header section,if not found in header section then extract from footer section.
 
-vat_number: The company's official VAT Registration Number (e.g., TRN).
+vat_number: The company's official VAT Registration Number (e.g., TRN).Must be 15 characters long.Example: "123456789012345".Extract correctly after removing any leading or trailing spaces.
 
 Crucial Rule: This is the company's permanent tax ID. Do not confuse it with a transactional "VAT Invoice Number". If you find only an invoice-specific VAT number but not the company's registration number, leave this field empty.
 
-cr_number: The Commercial Registration number. Look for labels like "C.R.", "CRN", or "Commercial Registration".
+cr_number: The Commercial Registration number. Look for labels like "C.R.", "CRN", or "Commercial Registration".Must be 10 characters long.Example: "1234567890".Extract correctly after removing any leading or trailing spaces.
 
 street & street2:
 
-If the address is on a single line: Extract the entire address line into the street field and leave street2 as an empty string "".
+If the address is on a single line: Extract the entire address line into the street field and leave street2 as an empty string "".Must extract the correct details from the image.There is no need to extract the city name, country name from the address.Only extract the street name and number.
 
-If the address is on two distinct lines: Extract the first line into street and the second line into street2.
-If the vat_number is not found, leave it as an empty string "None".
+If the address is on two distinct lines: Extract the first line into street and the second line into street2.Must extract the correct details from the image.
 
 city: The city from the biller's address.
 
@@ -104,11 +100,15 @@ Document-Level Details
 
 invoice_type: The main title of the document (e.g., "Tax Invoice", "Receipt"). If no title is present, infer the type from its content (e.g., "Bank Transaction Slip", "Payment Confirmation").
 
-invoice_bill_date: The date the document was issued. You must format this as YYYY-MM-DD. Example: "25 Jan 2024" becomes "2024-01-25".
+invoice_bill_date: The date the document was issued. You must format this as YYYY-MM-DD. Example: "25 Jan 2024" becomes "2024-01-25".Must extract the correct date when the invoice is issued.
 
 reference: The unique identifier for this document. Look for "Invoice No.", "Reference Number", "Transaction ID".
 
 detected_language: The primary language of the text in the document (e.g., "Arabic", "English", "Mixed").
+
+discount: The total discount amount applied to the invoice. Look for fields like "Discount", "Discount Amount", "Total Discount". Strip all currency symbols and commas. If no discount is mentioned, use "0".
+
+currency: The currency used in the document (e.g., "SAR", "USD", "EUR"). Look for currency symbols or abbreviations throughout the document.Must be 3 characters long.Example: "SAR".Extract correctly after removing any leading or trailing spaces.
 
 Line Item Details (invoice_lines)
 
@@ -116,15 +116,16 @@ Guideline: For bank slips or payment confirmations, invoice_lines should only co
 
 For each item in the invoice_lines array:
 
-product: A string describing the product or service charge.
 
-gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.
+product: A string describing the product or service charge. take it even if its in arabic.Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.
 
-unit_price: A string representing the price per unit. Strip all currency symbols and commas.
+gross_amount: A string representing the total price for the line item before taxes (typically Quantity × Unit Price). Look for column headers like 'Amount', 'Subtotal', or 'Total'. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.Do not return it as string.
 
-quantity: A string representing the quantity.
+unit_price: A string representing the price per unit. Strip all currency symbols and commas.Only extract the numeric value.Return only the numeric value.Unit price must be extracted after applying discount.Do not return it as string.
 
-taxes: A string representing the tax applied to the line item.
+quantity: A string representing the quantity.Do not return it as string.
+
+taxes: A string representing the tax applied to the line item.Do not return it as string.
 
 MANDATORY RULES & CONSTRAINTS
 
@@ -134,15 +135,15 @@ STRICT SCHEMA ADHERENCE: You must include all keys from the schemas in your resp
 
 THE GOLDEN RULE FOR MISSING VALUES:
 
-A) Non-Numeric Fields: For any field that is not a number (e.g., partner, street, email,street2), if the information cannot be found, you MUST use "None" as the value.
+A) Non-Numeric Fields: For any field that is not a number (e.g., partner, street, email, street2, currency), if the information cannot be found, you MUST use "None" as the value.
 
-B) Numeric Fields: For fields within invoice_lines that represent a monetary value (unit_price, gross_amount), if a value is not present or cannot be read, you MUST use the string "0".
+B) Numeric Fields: For fields within invoice_lines that represent a monetary value (unit_price, gross_amount) and the discount field, if a value is not present or cannot be read, you MUST use the string "0".
 
 QUANTITY DEFAULT: For the quantity field in invoice_lines, if it is not explicitly stated on the document, you MUST use the string "1".
 
 STRICT TAX FORMATTING: For the taxes field inside each line item, the value MUST be either "0" or "15%". If no tax is mentioned for a line item, use "0". No other tax values are permitted.
 
-DATA EXCLUSION: Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.
+DATA EXCLUSION: Do not extract or include information related to warranties, return policies, websites, or promotional text. Focus exclusively on the defined data points.Also do not extract any information that is not related to the defined data points like E-Vouchers,Complementry etc.
             """
 
             messages = [
